@@ -6,13 +6,14 @@ from profiles_app.api.serializers import ProfileSerializer
 
 
 class ProfileDetailView(RetrieveUpdateAPIView):
+    permission_classes = []
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
     lookup_field = "pk"
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        profile = user.profile  # Holt das Profile-Objekt zum User
+        profile = user.profile
         serializer = ProfileSerializer(profile)
         return Response(serializer.data)
 

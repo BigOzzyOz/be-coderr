@@ -21,4 +21,4 @@ class ProfileSerializer(serializers.ModelSerializer):
             "email",
             "created_at",
         ]
-        read_only_fields = ["username", "created_at"]
+        read_only_fields = ["created_at"]

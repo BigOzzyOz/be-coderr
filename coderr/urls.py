@@ -36,8 +36,8 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/profile/", include("profiles_app.api.urls.profile_urls")),
-    path("api/profiles/", include("profiles_app.api.urls.profiles_urls")),
+    path("api/", include("auth_app.api.urls")),
+    path("api/", include("profiles_app.api.urls")),
     path("api-auth", include("rest_framework.urls", namespace="rest_framework")),
     re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json"),
     path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
