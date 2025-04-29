@@ -5,7 +5,6 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-from profiles_app.models import Profile
 from .serializers import RegisterSerializer
 
 
@@ -20,16 +19,14 @@ class RegisterView(CreateAPIView):
             try:
                 with transaction.atomic():
                     user = serializer.save()
-                    profile, created = Profile.objects.get_or_create(user=user)
-                    profile.type = request.data.get("type", "customer")
-                    profile.save()
+                    user.profile.type = serializer.validated_data["type"]
+                    user.profile.save()
                     token, _ = Token.objects.get_or_create(user=user)
                     return Response(
                         {"token": token.key, "username": user.username, "email": user.email, "user_id": user.id},
                         status=status.HTTP_201_CREATED,
                     )
-            except Exception as e:
-                print(f"Error creating user: {e}")
+            except Exception:
                 return Response({"detail": "Internal server error."}, status=500)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

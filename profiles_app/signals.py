@@ -6,6 +6,5 @@ from .models import Profile
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    print("Signal triggered: User created")
     if created:
-        Profile.objects.create(user=instance)
+        Profile.objects.get_or_create(user=instance, username=instance.username, email=instance.email)

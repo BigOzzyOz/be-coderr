@@ -14,6 +14,7 @@ class Profile(models.Model):
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=30, blank=True)
     file = models.FileField(upload_to="uploads/", blank=True, null=True)
+    uploaded_at = models.DateTimeField(blank=True, null=True)
     location = models.CharField(max_length=100, blank=True)
     tel = models.CharField(max_length=25, blank=True)
     description = models.TextField(blank=True)
