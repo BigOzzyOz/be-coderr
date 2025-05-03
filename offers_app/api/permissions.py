@@ -9,9 +9,12 @@ class IsAuthenticatedOrBusinessCreateOrOwnerUpdateDelete(BasePermission):
             return True
         if request.method == "POST" and request.user.profile.type == "business":
             return True
+        if request.method in ["PATCH", "DELETE"]:
+            return True
         return False
 
     def has_object_permission(self, request, view, obj):
+        print(obj.user, request.user)
         if not request.user or not request.user.is_authenticated:
             return False
         if request.method in SAFE_METHODS:

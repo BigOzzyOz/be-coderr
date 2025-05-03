@@ -55,7 +55,7 @@ class OfferSerializer(serializers.ModelSerializer):
             "min_delivery_time",
             "user_details",
         )
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = ["user", "id", "created_at", "updated_at"]
 
     def get_min_price(self, obj):
         if obj.details.exists():
