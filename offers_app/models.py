@@ -11,7 +11,7 @@ class OfferDetail(models.Model):
 
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=255)
-    revisions = models.CharField(max_length=255, blank=True, null=True)
+    revisions = models.IntegerField(default=0)
     delivery_time_in_days = models.IntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     features = models.JSONField(default=list, blank=True, null=True)
@@ -23,7 +23,7 @@ class OfferDetail(models.Model):
 
 
 class Offer(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="offers")
     title = models.CharField(max_length=255)
     image = models.FileField(upload_to="offers/", blank=True, null=True)

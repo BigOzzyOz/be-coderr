@@ -3,11 +3,14 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework.test import APITestCase
+from core.utils.test_client import JSONAPIClient
 from profiles_app.models import Profile
 from profiles_app.api.views import ProfileDetailView
 
 
 class TestProfileDetailView(APITestCase):
+    client_class = JSONAPIClient
+
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="pw123", email="test@mail.de")
         self.profile = self.user.profile

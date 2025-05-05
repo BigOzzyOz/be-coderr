@@ -1,0 +1,59 @@
+from django.contrib.auth.models import User
+from django.urls import reverse
+from rest_framework.test import APITestCase
+from core.utils.test_client import JSONAPIClient
+from offers_app.models import Offer, OfferDetail
+
+
+class TestOfferListView(APITestCase):
+    client_class = JSONAPIClient
+
+    def setUp(self):
+        self.business_user = User.objects.create_user(username="business", password="pw123", email="b@mail.de")
+        self.business_user.profile.type = "business"
+        self.business_user.profile.save()
+        self.customer_user = User.objects.create_user(username="customer", password="pw123", email="c@mail.de")
+        self.customer_user.profile.type = "customer"
+        self.customer_user.profile.save()
+        self.offer = Offer.objects.create(user=self.business_user, title="Test", description="desc")
+        OfferDetail.objects.create(
+            offer=self.offer,
+            title="Detail1",
+            revisions=1,
+            delivery_time_in_days=5,
+            price=100,
+            features=["A"],
+            offer_type="basic",
+        )
+        self.url = reverse("offer-list")
+
+    def test_get_offer_list_unauthenticated(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("detail", response.data)
+
+    def test_get_offer_list_authenticated(self):
+        self.client.force_authenticate(user=self.customer_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("results", response.data)
+
+    def test_get_offer_list_invalid_query(self):
+        self.client.force_authenticate(user=self.customer_user)
+        response = self.client.get(self.url + "?min_price=abc")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("min_price", str(response.data))
+
+    def test_get_offer_list_internal_server_error(self):
+        self.client.force_authenticate(user=self.customer_user)
+        orig_list = self.client.get
+
+        def error_list(*a, **kw):
+            raise Exception("Test-Fehler")
+
+        self.client.get = error_list
+        try:
+            with self.assertRaises(Exception):
+                self.client.get(self.url)
+        finally:
+            self.client.get = orig_list

@@ -2,6 +2,9 @@ from rest_framework import serializers
 from django.db import models
 from django.contrib.auth.models import User
 from offers_app.models import Offer, OfferDetail
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class OfferDetailSerializer(serializers.ModelSerializer):
@@ -16,7 +19,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             "features",
             "offer_type",
         ]
-        read_only_fields = ["id"]
+        extra_kwargs = {"id": {"read_only": False, "required": False}}
 
 
 class OfferDetailLinkSerializer(serializers.ModelSerializer):
@@ -39,6 +42,7 @@ class OfferSerializer(serializers.ModelSerializer):
     user_details = OfferUserDetailSerializer(source="user", read_only=True)
     min_price = serializers.SerializerMethodField()
     min_delivery_time = serializers.SerializerMethodField()
+    details = OfferDetailSerializer(many=True, required=False)
 
     class Meta:
         model = Offer
@@ -57,6 +61,17 @@ class OfferSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ["user", "id", "created_at", "updated_at"]
 
+    def validate(self, attrs):
+        request = self.context.get("request")
+        if request and request.method == "PATCH":
+            raw_data = request.data
+            if "details" in raw_data and isinstance(raw_data["details"], list) and not raw_data["details"]:
+                raise serializers.ValidationError(
+                    {"details": "At least one detail is required when providing the 'details' field for update."}
+                )
+
+        return attrs
+
     def get_min_price(self, obj):
         if obj.details.exists():
             return obj.details.aggregate(models.Min("price"))["price__min"]
@@ -72,34 +87,43 @@ class OfferSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if request and request.method in ["GET"]:
             self.fields["details"] = OfferDetailLinkSerializer(many=True, read_only=True)
-        else:
-            self.fields["details"] = OfferDetailSerializer(many=True)
 
     def create(self, validated_data):
         validated_data["user"] = self.context["request"].user
-        details_data = validated_data.pop("details", None)
+        details_data = validated_data.pop("details", [])
         offer = Offer.objects.create(**validated_data)
-        if details_data:
-            for detail_data in details_data:
-                OfferDetail.objects.create(offer=offer, **detail_data)
+        for detail_data in details_data:
+            OfferDetail.objects.create(offer=offer, **detail_data)
         return offer
 
     def update(self, instance, validated_data):
         details_data = validated_data.pop("details", None)
-        instance.title = validated_data.get("title", instance.title)
-        instance.description = validated_data.get("description", instance.description)
-        instance.image = validated_data.get("image", instance.image)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         instance.save()
 
-        if details_data:
-            for detail_data in details_data:
-                detail_id = detail_data.get("id")
-                if detail_id:
+        if details_data is not None:
+            existing_details_mapping = {item.get("id"): item for item in details_data if item.get("id")}
+            new_details_data = [item for item in details_data if not item.get("id")]
+
+            for detail_id, data in existing_details_mapping.items():
+                try:
                     detail_instance = OfferDetail.objects.get(id=detail_id, offer=instance)
-                    for attr, value in detail_data.items():
+                    data.pop("id", None)
+                    for attr, value in data.items():
                         setattr(detail_instance, attr, value)
                     detail_instance.save()
-                else:
-                    OfferDetail.objects.create(offer=instance, **detail_data)
+                except OfferDetail.DoesNotExist:
+                    logger.warning(f"OfferDetail with id {detail_id} not found for offer {instance.id} during update.")
+
+            for data in new_details_data:
+                try:
+                    OfferDetail.objects.create(offer=instance, **data)
+                except Exception as e:
+                    logger.error(
+                        f"Error creating OfferDetail during update for offer {instance.id}: {e} with data {data}"
+                    )
+                    raise serializers.ValidationError(f"Failed to create a detail: {e}")
 
         return instance

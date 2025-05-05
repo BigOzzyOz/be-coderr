@@ -1,9 +1,12 @@
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
+from core.utils.test_client import JSONAPIClient
 
 
 class TestRegistration(APITestCase):
+    client_class = JSONAPIClient
+
     def test_registration_success(self):
         data = {
             "username": "TestUser ",

@@ -2,9 +2,12 @@ from rest_framework.test import APITestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from profiles_app.models import Profile
+from core.utils.test_client import JSONAPIClient
 
 
 class TestLogin(APITestCase):
+    client_class = JSONAPIClient
+
     def test_login_success(self):
         user = User.objects.create_user(username="loginuser", email="login@mail.de", password="pw123")
         Profile.objects.filter(user=user).update(type="customer")

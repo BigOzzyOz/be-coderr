@@ -1,10 +1,13 @@
-from rest_framework.test import APITestCase
-from django.urls import reverse
 from django.contrib.auth.models import User
+from django.urls import reverse
+from rest_framework.test import APITestCase
+from core.utils.test_client import JSONAPIClient
 from profiles_app.api.views import CustomerProfileListView, BusinessProfileListView
 
 
 class TestProfileListViews(APITestCase):
+    client_class = JSONAPIClient
+
     def setUp(self):
         self.user = User.objects.create_user(username="customer1", password="pw123", email="c1@mail.de")
         self.profile = self.user.profile
