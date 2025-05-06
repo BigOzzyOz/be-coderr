@@ -1,10 +1,13 @@
-from django.test import TestCase
+from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
+from core.utils.test_client import JSONAPIClient
 from offers_app.models import Offer
 from offers_app.api.filters import OfferFilter
 
 
-class OfferFilterTests(TestCase):
+class OfferFilterTests(APITestCase):
+    client_class = JSONAPIClient
+
     @classmethod
     def setUpTestData(cls):
         cls.user1 = User.objects.create_user(username="user1", password="pw1", email="user1@test.com")

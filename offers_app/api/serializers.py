@@ -2,9 +2,6 @@ from rest_framework import serializers
 from django.db import models
 from django.contrib.auth.models import User
 from offers_app.models import Offer, OfferDetail
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class OfferDetailSerializer(serializers.ModelSerializer):
@@ -115,15 +112,12 @@ class OfferSerializer(serializers.ModelSerializer):
                         setattr(detail_instance, attr, value)
                     detail_instance.save()
                 except OfferDetail.DoesNotExist:
-                    logger.warning(f"OfferDetail with id {detail_id} not found for offer {instance.id} during update.")
+                    pass
 
             for data in new_details_data:
                 try:
                     OfferDetail.objects.create(offer=instance, **data)
                 except Exception as e:
-                    logger.error(
-                        f"Error creating OfferDetail during update for offer {instance.id}: {e} with data {data}"
-                    )
                     raise serializers.ValidationError(f"Failed to create a detail: {e}")
 
         return instance

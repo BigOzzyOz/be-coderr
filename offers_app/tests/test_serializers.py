@@ -1,6 +1,5 @@
 from decimal import Decimal
-from django.test import TestCase
-from rest_framework.test import APIRequestFactory
+from rest_framework.test import APITestCase, APIRequestFactory
 from rest_framework.request import Request
 from rest_framework.parsers import JSONParser
 from django.contrib.auth.models import User
@@ -8,13 +7,14 @@ from offers_app.models import Offer, OfferDetail
 from offers_app.api.serializers import OfferSerializer
 from rest_framework.exceptions import ValidationError
 from unittest.mock import patch
-import logging
+from core.utils.test_client import JSONAPIClient
 
 
-class OfferSerializerTests(TestCase):
+class OfferSerializerTests(APITestCase):
+    client_class = JSONAPIClient
+
     @classmethod
     def setUpTestData(cls):
-        cls.factory = APIRequestFactory()
         cls.user = User.objects.create_user(username="testuser", password="pw1", email="test@test.com")
         cls.offer_with_details = Offer.objects.create(user=cls.user, title="Offer 1", description="Desc 1")
         cls.detail1 = OfferDetail.objects.create(
@@ -24,6 +24,17 @@ class OfferSerializerTests(TestCase):
             offer=cls.offer_with_details, title="Detail 1.2", price=50, delivery_time_in_days=3
         )
         cls.offer_no_details = Offer.objects.create(user=cls.user, title="Offer 2", description="Desc 2")
+
+    def setUp(self):
+        super().setUp()
+
+        if not hasattr(self, "factory"):
+            try:
+                self.factory = APIRequestFactory()
+                if not hasattr(self, "client") and hasattr(self, "client_class"):
+                    self.client = self.client_class()
+            except Exception:
+                pass
 
     def _get_serializer_context(self, method="GET", data=None):
         if method.lower() in ["post", "put", "patch"]:
@@ -118,16 +129,8 @@ class OfferSerializerTests(TestCase):
         context = self._get_serializer_context(method="PATCH", data=data)
         serializer = OfferSerializer(instance=self.offer_with_details, data=data, partial=True, context=context)
 
-        with self.assertLogs("offers_app.api.serializers", level="WARNING") as log_cm:
-            self.assertTrue(serializer.is_valid(raise_exception=True))
-            updated_offer = serializer.save()
-
-        log_message_found = any(
-            f"OfferDetail with id {non_existent_id} not found for offer {self.offer_with_details.id} during update."
-            in output_line
-            for output_line in log_cm.output
-        )
-        self.assertTrue(log_message_found, "Expected log message not found in output.")
+        self.assertTrue(serializer.is_valid(raise_exception=True))
+        updated_offer = serializer.save()
 
         self.detail1.refresh_from_db()
         self.assertEqual(self.detail1.price, Decimal("120.00"))
@@ -153,15 +156,8 @@ class OfferSerializerTests(TestCase):
 
         self.assertTrue(serializer.is_valid(raise_exception=True))
 
-        logger_instance = logging.getLogger("offers_app.api.serializers")
-        original_level = logger_instance.level
-        logger_instance.setLevel(logging.CRITICAL)
-
-        try:
-            with self.assertRaises(ValidationError) as cm:
-                serializer.save()
-        finally:
-            logger_instance.setLevel(original_level)
+        with self.assertRaises(ValidationError) as cm:
+            serializer.save()
 
         self.assertIn("Failed to create a detail: Database connection lost", str(cm.exception))
 

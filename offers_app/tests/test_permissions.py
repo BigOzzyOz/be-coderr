@@ -1,11 +1,12 @@
-from django.test import TestCase, RequestFactory
+from rest_framework.test import APITestCase
+from django.test import RequestFactory
 from django.contrib.auth.models import User, AnonymousUser
 from offers_app.models import Offer
 from offers_app.api.permissions import IsAuthenticatedOrBusinessCreateOrOwnerUpdateDelete
 from core.utils.test_client import JSONAPIClient
 
 
-class TestOfferPermissions(TestCase):
+class TestOfferPermissions(APITestCase):
     client_class = JSONAPIClient
 
     @classmethod
