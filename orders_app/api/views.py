@@ -1,4 +1,5 @@
 from django.db import models
+from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
@@ -27,3 +28,15 @@ class OrderModelViewSet(viewsets.ModelViewSet):
             )
         else:
             return super().update(request, *args, **kwargs)
+
+
+class BusinessOrderCountView(APIView):
+    def get(self, request, business_user_id, *args, **kwargs):
+        count = Order.objects.filter(business_user_id=business_user_id).count()
+        return Response({"order_count": count})
+
+
+class BusinessOrderCompleteCountView(APIView):
+    def get(self, request, business_user_id, *args, **kwargs):
+        count = Order.objects.filter(business_user_id=business_user_id, status="completed").count()
+        return Response({"completed_order_count": count})

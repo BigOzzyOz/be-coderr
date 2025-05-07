@@ -1,6 +1,5 @@
 import random
 from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
 from offers_app.models import OfferDetail
 from orders_app.models import Order
 from profiles_app.models import Profile
