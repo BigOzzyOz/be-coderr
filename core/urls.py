@@ -39,6 +39,7 @@ urlpatterns = [
     path("api/", include("auth_app.api.urls")),
     path("api/", include("profiles_app.api.urls")),
     path("api/", include("offers_app.api.urls")),
+    path("api/", include("orders_app.api.urls")),
     path("api/", include("reviews_app.api.urls")),
     path("api-auth", include("rest_framework.urls", namespace="rest_framework")),
     re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json"),
