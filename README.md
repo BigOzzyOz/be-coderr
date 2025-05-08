@@ -1,23 +1,28 @@
-# Backend Coderr API
+# Coderr Backend
 
-This repository contains the backend for the Coderr project. It is a Django REST Framework (DRF) application structured for modularity, maintainability, and best practices.
+Coderr Backend is a modular Django REST Framework (DRF) backend for a service marketplace platform. It is designed for maintainability, scalability, and clean code, providing a robust API for user management, offers, orders, reviews, and platform statistics.
 
 ## Features
-- Modular Django project with separate apps for authentication, profiles, offers, orders, reviews, and infos
-- RESTful API endpoints for all resources
-- JWT/Token-based authentication
-- Permissions and role-based access control
-- Admin interface enabled
-- Filtering, pagination, and ordering for list endpoints
-- Automated tests for all critical functionality
+- **Modular project structure:** Each domain (auth, profiles, offers, orders, reviews, infos) is implemented as a separate Django app for clear separation of concerns.
+- **RESTful API:** Resource-oriented endpoints for all major entities, following REST best practices.
+- **Authentication & Authorization:** Token-based authentication (DRF Token Auth) and role-based permissions (customer, business, staff).
+- **Filtering, ordering, and pagination:** Flexible list endpoints with support for filtering, ordering, and pagination.
+- **Admin interface:** Django admin enabled for easy data management.
+- **Automated testing:** Comprehensive test coverage for all critical functionality.
+- **OpenAPI documentation:** Interactive API docs available via Swagger UI and Redoc.
 
 ## Project Structure
-- `core/`: Main project folder (settings, urls, wsgi, asgi)
-- `auth_app/`, `profiles_app/`, `offers_app/`, `orders_app/`, `reviews_app/`, `infos_app/`: Each app has its own `api/` folder with `serializers.py`, `views.py`, `urls.py`, `permissions.py`, etc.
-- `mediafiles/`: Uploaded files (e.g., profile images)
-- `requirements.txt`: All dependencies
+- `core/` – Main project configuration (settings, urls, wsgi, asgi)
+- `auth_app/` – User registration, login, and authentication
+- `profiles_app/` – User profile management (customer & business)
+- `offers_app/` – Offer and offer detail management
+- `orders_app/` – Order management
+- `reviews_app/` – Review and rating system
+- `infos_app/` – Platform statistics/info endpoints
+- `mediafiles/` – Uploaded files (e.g., profile images)
+- `requirements.txt` – Python dependencies
 
-## Setup & Installation
+## Getting Started
 1. **Clone the repository**
 2. **Create and activate a virtual environment**
    ```bash
@@ -33,7 +38,7 @@ This repository contains the backend for the Coderr project. It is a Django REST
    ```bash
    python manage.py migrate
    ```
-5. **Create a superuser (for admin access)**
+5. **Create a superuser (optional, for admin access)**
    ```bash
    python manage.py createsuperuser
    ```
@@ -42,9 +47,16 @@ This repository contains the backend for the Coderr project. It is a Django REST
    python manage.py runserver
    ```
 
-## API Documentation
-- Swagger UI: `/swagger/`
-- Redoc: `/redoc/`
+## API Overview
+- All endpoints are prefixed with `/api/`
+- Interactive API docs: `/swagger/` (Swagger UI), `/redoc/` (Redoc)
+- See below for a full list of main API endpoints.
+
+## Environment & Configuration
+- **Database:** Default is SQLite for development. For production, configure your preferred database in `core/settings.py`.
+- **Media files:** Uploaded files are stored in the `mediafiles/` directory.
+- **Environment variables:** Use environment variables or a `.env` file for secrets and environment-specific settings (not included in version control).
+- **Admin:** The Django admin interface is available at `/admin/`.
 
 ## Main API Endpoints
 
@@ -76,22 +88,16 @@ This repository contains the backend for the Coderr project. It is a Django REST
 All endpoints are resource-oriented and follow REST conventions. For details on parameters and responses, see Swagger UI (`/swagger/`) or Redoc (`/redoc/`).
 
 ## Testing
-- Run all tests:
-  ```bash
-  python manage.py test
-  ```
-- Test coverage is >95% for all critical endpoints.
+Run all tests with:
+```bash
+python manage.py test
+```
 
-## Important Notes
-- **Do not commit or upload the `db.sqlite3` or any database files to GitHub.**
-- The backend is separated from any frontend code and should be in its own repository.
-- All environment-specific settings (e.g., secrets) should be managed via environment variables or `.env` files (not included).
+## Contributing
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
-## Special Considerations
-- Each app uses a clear naming convention (e.g., `auth_app`, `offers_app`).
-- All API endpoints are resource-oriented and follow REST best practices.
-- The admin interface is available at `/admin/`.
-- For any custom management commands, see the `management/commands/` folders in each app.
+## License
+This project is licensed under the MIT License.
 
 ## Contact
 For questions or support, contact the maintainer at mail@jan-holtschke.de
