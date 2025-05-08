@@ -16,6 +16,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     ordering_fields = ["updated_at", "rating"]
     ordering = ["-updated_at"]
 
+    def retrieve(self, request, *args, **kwargs):
+        if request.method == "GET":
+            return Response({"detail": "GET is not allowed in detail View."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def update(self, request, *args, **kwargs):
         if request.method == "PUT":
             return Response(

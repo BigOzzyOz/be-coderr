@@ -16,7 +16,12 @@ class OrderModelViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Order.objects.filter(models.Q(customer_user=user) | models.Q(business_user=user)).order_by("-created_at")
+        if user.is_staff:
+            return Order.objects.all().order_by("-created_at")
+        else:
+            return Order.objects.filter(models.Q(customer_user=user) | models.Q(business_user=user)).order_by(
+                "-created_at"
+            )
 
     def retrieve(self, request, *args, **kwargs):
         return Response({"detail": "GET is not allowed in detail view."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)

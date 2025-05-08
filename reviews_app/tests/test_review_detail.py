@@ -48,23 +48,26 @@ class TestReviewDetailView(APITestCase):
     def test_get_review_detail_authenticated_owner(self):
         self.client.force_authenticate(user=self.owner_customer)
         response = self.client.get(self.detail_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["id"], self.review.id)
+        self.assertEqual(response.status_code, 405)
+        self.assertIn("not allowed", str(response.data))
 
     def test_get_review_detail_authenticated_other_customer(self):
         self.client.force_authenticate(user=self.other_customer)
         response = self.client.get(self.detail_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, 405)
+        self.assertIn("not allowed", str(response.data))
 
     def test_get_review_detail_authenticated_business_user(self):
         self.client.force_authenticate(user=self.business_reviewed)
         response = self.client.get(self.detail_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, 405)
+        self.assertIn("not allowed", str(response.data))
 
     def test_get_review_detail_non_existent(self):
         self.client.force_authenticate(user=self.owner_customer)
         response = self.client.get(self.non_existent_url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, 405)
+        self.assertIn("not allowed", str(response.data))
 
     def test_patch_review_unauthenticated(self):
         data = {"rating": 1, "description": "Updated badly"}

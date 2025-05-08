@@ -8,17 +8,21 @@ from profiles_app.api.views import CustomerProfileListView, BusinessProfileListV
 class TestProfileListViews(APITestCase):
     client_class = JSONAPIClient
 
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(username="customer1", password="pw123", email="c1@mail.de")
+        cls.profile = cls.user.profile
+        cls.profile.type = "customer"
+        cls.profile.save()
+        cls.business_user = User.objects.create_user(username="business1", password="pw123", email="b1@mail.de")
+        cls.business_profile = cls.business_user.profile
+        cls.business_profile.type = "business"
+        cls.business_profile.save()
+        cls.customer_url = reverse("customer-profiles")
+        cls.business_url = reverse("business-profiles")
+
     def setUp(self):
-        self.user = User.objects.create_user(username="customer1", password="pw123", email="c1@mail.de")
-        self.profile = self.user.profile
-        self.profile.type = "customer"
-        self.profile.save()
-        self.business_user = User.objects.create_user(username="business1", password="pw123", email="b1@mail.de")
-        self.business_profile = self.business_user.profile
-        self.business_profile.type = "business"
-        self.business_profile.save()
-        self.customer_url = reverse("customer-profiles")
-        self.business_url = reverse("business-profiles")
+        self.client = self.client_class()
 
     def test_customer_list_unauthenticated(self):
         response = self.client.get(self.customer_url)

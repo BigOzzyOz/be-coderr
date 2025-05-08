@@ -8,15 +8,16 @@ from offers_app.models import Offer
 class TestOfferCreateView(APITestCase):
     client_class = JSONAPIClient
 
-    def setUp(self):
-        self.business_user = User.objects.create_user(username="business", password="pw123", email="b@mail.de")
-        self.business_user.profile.type = "business"
-        self.business_user.profile.save()
-        self.customer_user = User.objects.create_user(username="customer", password="pw123", email="c@mail.de")
-        self.customer_user.profile.type = "customer"
-        self.customer_user.profile.save()
-        self.url = reverse("offer-list")
-        self.valid_data = {
+    @classmethod
+    def setUpTestData(cls):
+        cls.business_user = User.objects.create_user(username="business", password="pw123", email="b@mail.de")
+        cls.business_user.profile.type = "business"
+        cls.business_user.profile.save()
+        cls.customer_user = User.objects.create_user(username="customer", password="pw123", email="c@mail.de")
+        cls.customer_user.profile.type = "customer"
+        cls.customer_user.profile.save()
+        cls.url = reverse("offer-list")
+        cls.valid_data = {
             "title": "Neues Angebot",
             "description": "Beschreibung",
             "details": [
@@ -30,6 +31,9 @@ class TestOfferCreateView(APITestCase):
                 }
             ],
         }
+
+    def setUp(self):
+        self.client = self.client_class()
 
     def test_post_offer_unauthenticated(self):
         response = self.client.post(self.url, self.valid_data)

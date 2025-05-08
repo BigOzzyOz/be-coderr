@@ -9,13 +9,14 @@ from offers_app.models import Offer, OfferDetail
 class TestOfferDetailDetailView(APITestCase):
     client_class = JSONAPIClient
 
-    def setUp(self):
-        self.user = User.objects.create_user(username="user", password="pw123", email="u@mail.de")
-        self.user.profile.type = "business"
-        self.user.profile.save()
-        self.offer = Offer.objects.create(user=self.user, title="Test", description="desc")
-        self.detail = OfferDetail.objects.create(
-            offer=self.offer,
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(username="user", password="pw123", email="u@mail.de")
+        cls.user.profile.type = "business"
+        cls.user.profile.save()
+        cls.offer = Offer.objects.create(user=cls.user, title="Test", description="desc")
+        cls.detail = OfferDetail.objects.create(
+            offer=cls.offer,
             title="Detail1",
             revisions=1,
             delivery_time_in_days=5,
@@ -23,7 +24,10 @@ class TestOfferDetailDetailView(APITestCase):
             features=["A"],
             offer_type="basic",
         )
-        self.url = reverse("offerdetails-detail", kwargs={"id": self.detail.pk})
+        cls.url = reverse("offerdetails-detail", kwargs={"id": cls.detail.pk})
+
+    def setUp(self):
+        self.client = self.client_class()
 
     def test_get_offerdetail_unauthenticated(self):
         response = self.client.get(self.url)

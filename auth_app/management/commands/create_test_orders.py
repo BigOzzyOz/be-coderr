@@ -38,7 +38,7 @@ class Command(BaseCommand):
     help = "Erstellt realistische Test-Orders mit deutschen Daten."
 
     def handle(self, *args, **options):
-        kunden = list(Profile.objects.filter(type="kunde").values_list("user", flat=True))
+        kunden = list(Profile.objects.filter(type="customer").values_list("user", flat=True))
         businesses = list(Profile.objects.filter(type="business").values_list("user", flat=True))
         offer_details = list(OfferDetail.objects.all())
 

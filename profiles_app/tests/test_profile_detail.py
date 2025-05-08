@@ -11,12 +11,16 @@ from profiles_app.api.views import ProfileDetailView
 class TestProfileDetailView(APITestCase):
     client_class = JSONAPIClient
 
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(username="testuser", password="pw123", email="test@mail.de")
+        cls.profile = cls.user.profile
+        cls.profile.type = "customer"
+        cls.profile.save()
+        cls.url = reverse("profile", kwargs={"pk": cls.user.pk})
+
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="pw123", email="test@mail.de")
-        self.profile = self.user.profile
-        self.profile.type = "customer"
-        self.profile.save()
-        self.url = reverse("profile", kwargs={"pk": self.user.pk})
+        self.client = self.client_class()
 
     def test_get_profile_unauthenticated(self):
         response = self.client.get(self.url)

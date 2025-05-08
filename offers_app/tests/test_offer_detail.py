@@ -9,16 +9,17 @@ from offers_app.api.views import OfferModelViewSet
 class TestOfferDetailView(APITestCase):
     client_class = JSONAPIClient
 
-    def setUp(self):
-        self.business_user = User.objects.create_user(username="business", password="pw123", email="b@mail.de")
-        self.business_user.profile.type = "business"
-        self.business_user.profile.save()
-        self.other_user = User.objects.create_user(username="other", password="pw123", email="o@mail.de")
-        self.other_user.profile.type = "business"
-        self.other_user.profile.save()
-        self.offer = Offer.objects.create(user=self.business_user, title="Test", description="desc")
+    @classmethod
+    def setUpTestData(cls):
+        cls.business_user = User.objects.create_user(username="business", password="pw123", email="b@mail.de")
+        cls.business_user.profile.type = "business"
+        cls.business_user.profile.save()
+        cls.other_user = User.objects.create_user(username="other", password="pw123", email="o@mail.de")
+        cls.other_user.profile.type = "business"
+        cls.other_user.profile.save()
+        cls.offer = Offer.objects.create(user=cls.business_user, title="Test", description="desc")
         OfferDetail.objects.create(
-            offer=self.offer,
+            offer=cls.offer,
             title="Detail1",
             revisions=1,
             delivery_time_in_days=5,
@@ -26,7 +27,10 @@ class TestOfferDetailView(APITestCase):
             features=["A"],
             offer_type="basic",
         )
-        self.url = reverse("offer-detail", kwargs={"pk": self.offer.pk})
+        cls.url = reverse("offer-detail", kwargs={"pk": cls.offer.pk})
+
+    def setUp(self):
+        self.client = self.client_class()
 
     def test_get_offer_detail_unauthenticated(self):
         response = self.client.get(self.url)

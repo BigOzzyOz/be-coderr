@@ -8,16 +8,17 @@ from offers_app.models import Offer, OfferDetail
 class TestOfferListView(APITestCase):
     client_class = JSONAPIClient
 
-    def setUp(self):
-        self.business_user = User.objects.create_user(username="business", password="pw123", email="b@mail.de")
-        self.business_user.profile.type = "business"
-        self.business_user.profile.save()
-        self.customer_user = User.objects.create_user(username="customer", password="pw123", email="c@mail.de")
-        self.customer_user.profile.type = "customer"
-        self.customer_user.profile.save()
-        self.offer = Offer.objects.create(user=self.business_user, title="Test", description="desc")
+    @classmethod
+    def setUpTestData(cls):
+        cls.business_user = User.objects.create_user(username="business", password="pw123", email="b@mail.de")
+        cls.business_user.profile.type = "business"
+        cls.business_user.profile.save()
+        cls.customer_user = User.objects.create_user(username="customer", password="pw123", email="c@mail.de")
+        cls.customer_user.profile.type = "customer"
+        cls.customer_user.profile.save()
+        cls.offer = Offer.objects.create(user=cls.business_user, title="Test", description="desc")
         OfferDetail.objects.create(
-            offer=self.offer,
+            offer=cls.offer,
             title="Detail1",
             revisions=1,
             delivery_time_in_days=5,
@@ -25,7 +26,10 @@ class TestOfferListView(APITestCase):
             features=["A"],
             offer_type="basic",
         )
-        self.url = reverse("offer-list")
+        cls.url = reverse("offer-list")
+
+    def setUp(self):
+        self.client = self.client_class()
 
     def test_get_offer_list_unauthenticated(self):
         response = self.client.get(self.url)
