@@ -21,8 +21,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ("username", "email", "password", "repeated_password", "type")
 
     def validate(self, attrs):
-        attrs["username"] = attrs["username"].lower().strip()
-        attrs["email"] = attrs["email"].lower().strip()
+        attrs["username"] = attrs["username"].strip()
+        attrs["email"] = attrs["email"].strip()
 
         GUEST_LOGINS = ["andrey", "kevin"]
         if attrs["username"] in GUEST_LOGINS and not User.objects.filter(username=attrs["username"]).exists():
@@ -50,7 +50,7 @@ class LoginSerializer(serializers.ModelSerializer):
         fields = ("username", "password")
 
     def validate(self, attrs):
-        username = attrs.get("username").lower().strip()
+        username = attrs.get("username").strip()
         password = attrs.get("password")
 
         GUEST_LOGINS = {
