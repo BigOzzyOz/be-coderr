@@ -6,6 +6,8 @@ from core.utils.test_client import JSONAPIClient
 
 
 class OrdersUpdateAPITestCase(APITestCase):
+    """Tests for order update API endpoint."""
+
     @classmethod
     def setUpTestData(cls):
         cls.customer = User.objects.create_user(username="kunde", password="pass1234", email="kunde@mail.de")
@@ -43,32 +45,38 @@ class OrdersUpdateAPITestCase(APITestCase):
         self.client = JSONAPIClient()
 
     def test_patch_order_status_as_business(self):
+        """Test that business user can PATCH order status."""
         self.client.force_authenticate(user=self.business)
         response = self.client.patch(f"/api/orders/{self.order.id}/", {"status": "completed"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["status"], "completed")
 
     def test_patch_order_status_as_customer_forbidden(self):
+        """Test that customer cannot PATCH order status."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.patch(f"/api/orders/{self.order.id}/", {"status": "completed"})
         self.assertEqual(response.status_code, 403)
 
     def test_patch_order_invalid_status(self):
+        """Test that PATCH with invalid status returns 400."""
         self.client.force_authenticate(user=self.business)
         response = self.client.patch(f"/api/orders/{self.order.id}/", {"status": "invalid"})
         self.assertEqual(response.status_code, 400)
 
     def test_patch_order_unauthenticated(self):
+        """Test that unauthenticated users cannot PATCH order."""
         response = self.client.patch(f"/api/orders/{self.order.id}/", {"status": "completed"})
         self.assertEqual(response.status_code, 401)
 
     def test_get_not_allowed_on_detail_view(self):
+        """Test that GET is not allowed on order detail view."""
         self.client.force_authenticate(user=self.business)
         response = self.client.get(f"/api/orders/{self.order.id}/")
         self.assertEqual(response.status_code, 405)
         self.assertIn("GET is not allowed", str(response.data))
 
     def test_put_not_allowed_on_detail_view(self):
+        """Test that PUT is not allowed on order detail view."""
         self.client.force_authenticate(user=self.business)
         response = self.client.put(f"/api/orders/{self.order.id}/", {"status": "completed"})
         self.assertEqual(response.status_code, 405)

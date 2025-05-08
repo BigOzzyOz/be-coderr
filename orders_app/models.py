@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 
 
 class Order(models.Model):
+    """Model for an order between customer and business user."""
+
     ORDER_STATUS_CHOICES = [
         ("in_progress", "In Progress"),
         ("completed", "Completed"),

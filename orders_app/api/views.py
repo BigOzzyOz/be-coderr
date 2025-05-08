@@ -10,12 +10,15 @@ from django.contrib.auth.models import User
 
 
 class OrderModelViewSet(viewsets.ModelViewSet):
+    """ViewSet for listing, creating, updating, and deleting orders."""
+
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticatedOrCustomerCreateOrBusinessUpdateOrStaffDelete]
     pagination_class = None
 
     def get_queryset(self):
+        """Return queryset filtered by user role (staff, customer, business)."""
         user = self.request.user
         if user.is_staff:
             return Order.objects.all().order_by("-created_at")
@@ -25,9 +28,11 @@ class OrderModelViewSet(viewsets.ModelViewSet):
             )
 
     def retrieve(self, request, *args, **kwargs):
+        """Block GET on detail view (not allowed)."""
         return Response({"detail": "GET is not allowed in detail view."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def update(self, request, *args, **kwargs):
+        """Block PUT, allow PATCH for updates."""
         if request.method == "PUT":
             return Response(
                 {"detail": "PUT is not allowed. Use PATCH instead."}, status=status.HTTP_405_METHOD_NOT_ALLOWED
@@ -37,7 +42,10 @@ class OrderModelViewSet(viewsets.ModelViewSet):
 
 
 class BusinessOrderCountView(APIView):
+    """API view to get count of in-progress orders for a business user."""
+
     def get(self, request, business_user_id, *args, **kwargs):
+        """Return count of in-progress orders for given business user."""
         if not User.objects.filter(id=business_user_id, profile__type="business").exists():
             return Response({"detail": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
         count = Order.objects.filter(business_user_id=business_user_id, status="in_progress").count()
@@ -45,7 +53,10 @@ class BusinessOrderCountView(APIView):
 
 
 class BusinessOrderCompleteCountView(APIView):
+    """API view to get count of completed orders for a business user."""
+
     def get(self, request, business_user_id, *args, **kwargs):
+        """Return count of completed orders for given business user."""
         if not User.objects.filter(id=business_user_id, profile__type="business").exists():
             return Response({"detail": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
         count = Order.objects.filter(business_user_id=business_user_id, status="completed").count()

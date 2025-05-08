@@ -2,7 +2,10 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class IsAuthenticatedOrCustomerCreateOrBusinessUpdateOrStaffDelete(BasePermission):
+    """Custom permission: Authenticated, customer can create, business can update, staff can delete."""
+
     def has_permission(self, request, view):
+        """Check general permissions for the request."""
         if not request.user or not request.user.is_authenticated:
             return False
         if request.method in SAFE_METHODS:
@@ -14,6 +17,7 @@ class IsAuthenticatedOrCustomerCreateOrBusinessUpdateOrStaffDelete(BasePermissio
         return False
 
     def has_object_permission(self, request, view, obj):
+        """Check object-level permissions for the request."""
         if not request.user or not request.user.is_authenticated:
             return False
         if request.method in SAFE_METHODS:

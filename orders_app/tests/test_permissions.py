@@ -6,6 +6,8 @@ from orders_app.models import Order
 
 
 class OrdersPermissionsAPITestCase(APITestCase):
+    """Tests for order API permissions and object permissions."""
+
     @classmethod
     def setUpTestData(cls):
         cls.customer = User.objects.create_user(username="kunde", password="pass1234", email="kunde@mail.de")
@@ -45,16 +47,19 @@ class OrdersPermissionsAPITestCase(APITestCase):
         self.client = JSONAPIClient()
 
     def test_customer_cannot_patch_order(self):
+        """Test that customers cannot PATCH orders."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.patch(f"/api/orders/{self.order.id}/", {"status": "completed"})
         self.assertEqual(response.status_code, 403)
 
     def test_business_can_patch_order(self):
+        """Test that business users can PATCH orders."""
         self.client.force_authenticate(user=self.business)
         response = self.client.patch(f"/api/orders/{self.order.id}/", {"status": "completed"})
         self.assertEqual(response.status_code, 200)
 
     def test_only_staff_can_delete_order(self):
+        """Test that only staff can DELETE orders."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.delete(f"/api/orders/{self.order.id}/")
         self.assertEqual(response.status_code, 403)
@@ -66,6 +71,7 @@ class OrdersPermissionsAPITestCase(APITestCase):
         self.assertEqual(response.status_code, 204)
 
     def test_only_customer_can_create_order(self):
+        """Test that only customers can create orders."""
         self.client.force_authenticate(user=self.business)
         response = self.client.post("/api/orders/", {"offer_detail_id": self.offer_detail.id})
         self.assertEqual(response.status_code, 403)
@@ -74,6 +80,7 @@ class OrdersPermissionsAPITestCase(APITestCase):
         self.assertEqual(response.status_code, 201)
 
     def test_object_permission_denied_for_unauthenticated(self):
+        """Test object permission denied for unauthenticated users."""
         from orders_app.api.permissions import IsAuthenticatedOrCustomerCreateOrBusinessUpdateOrStaffDelete
 
         class DummyObj:
@@ -89,6 +96,7 @@ class OrdersPermissionsAPITestCase(APITestCase):
         self.assertFalse(perm.has_object_permission(req, None, DummyObj()))
 
     def test_object_permission_safe_method(self):
+        """Test object permission allowed for safe methods."""
         from orders_app.api.permissions import IsAuthenticatedOrCustomerCreateOrBusinessUpdateOrStaffDelete
 
         class DummyObj:

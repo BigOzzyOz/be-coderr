@@ -6,6 +6,8 @@ from core.utils.test_client import JSONAPIClient
 
 
 class OrdersDeleteAPITestCase(APITestCase):
+    """Tests for order deletion API endpoint."""
+
     @classmethod
     def setUpTestData(cls):
         cls.customer = User.objects.create_user(username="kunde", password="pass1234", email="kunde@mail.de")
@@ -45,20 +47,24 @@ class OrdersDeleteAPITestCase(APITestCase):
         self.client = JSONAPIClient()
 
     def test_delete_order_as_staff(self):
+        """Test that staff can delete an order."""
         self.client.force_authenticate(user=self.staff)
         response = self.client.delete(f"/api/orders/{self.order.id}/")
         self.assertEqual(response.status_code, 204)
 
     def test_delete_order_as_customer_forbidden(self):
+        """Test that customers cannot delete an order."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.delete(f"/api/orders/{self.order.id}/")
         self.assertEqual(response.status_code, 403)
 
     def test_delete_order_unauthenticated(self):
+        """Test that unauthenticated users cannot delete an order."""
         response = self.client.delete(f"/api/orders/{self.order.id}/")
         self.assertEqual(response.status_code, 401)
 
     def test_delete_order_not_found(self):
+        """Test that deleting a non-existent order returns 404."""
         self.client.force_authenticate(user=self.staff)
         response = self.client.delete("/api/orders/9999/")
         self.assertEqual(response.status_code, 404)

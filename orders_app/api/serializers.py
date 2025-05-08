@@ -4,6 +4,8 @@ from offers_app.models import OfferDetail
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    """Serializer for Order model."""
+
     offer_detail_id = serializers.IntegerField(write_only=True)
 
     class Meta:
@@ -49,6 +51,7 @@ class OrderSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
+        """Create a new Order from offer_detail_id and validated data."""
         offer_detail_id = validated_data.pop("offer_detail_id")
         offer = OfferDetail.objects.get(id=offer_detail_id)
         validated_data["title"] = offer.title

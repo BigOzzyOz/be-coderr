@@ -6,6 +6,8 @@ from core.utils.test_client import JSONAPIClient
 
 
 class OrderCountViewsAPITestCase(APITestCase):
+    """Tests for business order count and completed order count API endpoints."""
+
     @classmethod
     def setUpTestData(cls):
         cls.customer = User.objects.create_user(username="customer", password="pass1234", email="kunde@mail.de")
@@ -51,23 +53,27 @@ class OrderCountViewsAPITestCase(APITestCase):
         self.client = JSONAPIClient()
 
     def test_order_count_view(self):
+        """Test in-progress order count for a business user."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.get(f"/api/order-count/{self.business.id}/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["order_count"], 1)
 
     def test_completed_order_count_view(self):
+        """Test completed order count for a business user."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.get(f"/api/completed-order-count/{self.business.id}/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["completed_order_count"], 1)
 
     def test_order_count_view_not_found(self):
+        """Test order count view returns 404 for non-existent business user."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.get("/api/order-count/9999/")
         self.assertEqual(response.status_code, 404)
 
     def test_completed_order_count_view_not_found(self):
+        """Test completed order count view returns 404 for non-existent business user."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.get("/api/completed-order-count/9999/")
         self.assertEqual(response.status_code, 404)

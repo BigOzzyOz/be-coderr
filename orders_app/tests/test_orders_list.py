@@ -6,6 +6,8 @@ from core.utils.test_client import JSONAPIClient
 
 
 class OrdersListAPITestCase(APITestCase):
+    """Tests for order list API endpoint."""
+
     @classmethod
     def setUpTestData(cls):
         cls.customer = User.objects.create_user(username="kunde", password="pass1234", email="kunde@mail.de")
@@ -43,23 +45,27 @@ class OrdersListAPITestCase(APITestCase):
         self.client = JSONAPIClient()
 
     def test_orders_list_authenticated_customer(self):
+        """Test that authenticated customer sees their orders."""
         self.client.force_authenticate(user=self.customer)
         response = self.client.get("/api/orders/")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(any(o["id"] == self.order.id for o in response.data))
 
     def test_orders_list_authenticated_business(self):
+        """Test that authenticated business user sees their orders."""
         self.client.force_authenticate(user=self.business)
         response = self.client.get("/api/orders/")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(any(o["id"] == self.order.id for o in response.data))
 
     def test_orders_list_authenticated_other(self):
+        """Test that other users do not see unrelated orders."""
         self.client.force_authenticate(user=self.other)
         response = self.client.get("/api/orders/")
         self.assertEqual(response.status_code, 200)
         self.assertFalse(any(o["id"] == self.order.id for o in response.data))
 
     def test_orders_list_unauthenticated(self):
+        """Test that unauthenticated users cannot list orders."""
         response = self.client.get("/api/orders/")
         self.assertEqual(response.status_code, 401)
