@@ -54,7 +54,7 @@ class OrderCountViewsAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.customer)
         response = self.client.get(f"/api/order-count/{self.business.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["order_count"], 2)
+        self.assertEqual(response.data["order_count"], 1)
 
     def test_completed_order_count_view(self):
         self.client.force_authenticate(user=self.customer)
@@ -65,11 +65,9 @@ class OrderCountViewsAPITestCase(APITestCase):
     def test_order_count_view_not_found(self):
         self.client.force_authenticate(user=self.customer)
         response = self.client.get("/api/order-count/9999/")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["order_count"], 0)
+        self.assertEqual(response.status_code, 404)
 
     def test_completed_order_count_view_not_found(self):
         self.client.force_authenticate(user=self.customer)
         response = self.client.get("/api/completed-order-count/9999/")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["completed_order_count"], 0)
+        self.assertEqual(response.status_code, 404)

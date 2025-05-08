@@ -6,6 +6,7 @@ from rest_framework import status
 from orders_app.models import Order
 from orders_app.api.serializers import OrderSerializer
 from orders_app.api.permissions import IsAuthenticatedOrCustomerCreateOrBusinessUpdateOrStaffDelete
+from django.contrib.auth.models import User
 
 
 class OrderModelViewSet(viewsets.ModelViewSet):
@@ -37,11 +38,15 @@ class OrderModelViewSet(viewsets.ModelViewSet):
 
 class BusinessOrderCountView(APIView):
     def get(self, request, business_user_id, *args, **kwargs):
-        count = Order.objects.filter(business_user_id=business_user_id).count()
+        if not User.objects.filter(id=business_user_id, profile__type="business").exists():
+            return Response({"detail": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
+        count = Order.objects.filter(business_user_id=business_user_id, status="in_progress").count()
         return Response({"order_count": count})
 
 
 class BusinessOrderCompleteCountView(APIView):
     def get(self, request, business_user_id, *args, **kwargs):
+        if not User.objects.filter(id=business_user_id, profile__type="business").exists():
+            return Response({"detail": "Business user not found."}, status=status.HTTP_404_NOT_FOUND)
         count = Order.objects.filter(business_user_id=business_user_id, status="completed").count()
         return Response({"completed_order_count": count})
