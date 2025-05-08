@@ -1,4 +1,3 @@
-from rest_framework.exceptions import NotFound
 from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,16 +14,18 @@ class ProfileDetailView(RetrieveUpdateAPIView):
 
     def get_object(self):
         user_pk = self.kwargs.get("pk")
-        try:
-            obj = Profile.objects.select_related("user").get(user__pk=user_pk)
-        except Profile.DoesNotExist:
-            raise NotFound("Profile not found.")
+        obj = Profile.objects.select_related("user").get(user__pk=user_pk)
 
         self.check_object_permissions(self.request, obj)
         return obj
 
-    def put(self, request, *args, **kwargs):
-        return Response({"detail": "PUT is not allowed. Use PATCH instead."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    def update(self, request, *args, **kwargs):
+        if request.method == "PUT":
+            return Response(
+                {"detail": "PUT is not allowed. Use PATCH instead."}, status=status.HTTP_405_METHOD_NOT_ALLOWED
+            )
+        else:
+            return super().update(request, *args, **kwargs)
 
 
 class CustomerProfileListView(ListAPIView):
