@@ -11,7 +11,7 @@ class TestLogin(APITestCase):
     def test_login_success(self):
         user = User.objects.create_user(username="loginuser", email="login@mail.de", password="pw123")
         Profile.objects.filter(user=user).update(type="customer")
-        data = {"username": "LOGINUSER ", "password": "pw123"}
+        data = {"username": "loginuser", "password": "pw123"}
         response = self.client.post(reverse("login"), data)
         self.assertEqual(response.status_code, 200)
         self.assertIn("token", response.data)

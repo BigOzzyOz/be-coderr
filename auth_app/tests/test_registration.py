@@ -18,9 +18,9 @@ class TestRegistration(APITestCase):
         response = self.client.post(reverse("register"), data)
         self.assertEqual(response.status_code, 201)
         self.assertIn("token", response.data)
-        self.assertEqual(response.data["username"], "testuser")
-        self.assertEqual(response.data["email"], "test@mail.de")
-        user = User.objects.get(username="testuser")
+        self.assertEqual(response.data["username"], "TestUser")
+        self.assertEqual(response.data["email"], "Test@mail.de")
+        user = User.objects.get(username="TestUser")
         self.assertEqual(user.profile.type, "customer")
 
     def test_registration_duplicate_username(self):

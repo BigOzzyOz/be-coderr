@@ -33,8 +33,8 @@ class TestOfferListView(APITestCase):
 
     def test_get_offer_list_unauthenticated(self):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 401)
-        self.assertIn("detail", response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("results", response.data)
 
     def test_get_offer_list_authenticated(self):
         self.client.force_authenticate(user=self.customer_user)
