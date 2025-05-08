@@ -14,6 +14,7 @@ from rest_framework.exceptions import (
 
 
 def custom_exception_handler(exc, context):
+    """Custom DRF exception handler for unified error responses."""
     response = exception_handler(exc, context)
 
     if response is not None:
