@@ -4,6 +4,8 @@ from profiles_app.models import Profile
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    """Serializer for the Profile model."""
+
     user = serializers.ReadOnlyField(source="user.pk")
 
     class Meta:
@@ -25,6 +27,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ["user", "username", "type", "created_at"]
 
     def update(self, instance, validated_data):
+        """Update profile and set uploaded_at if file changes."""
         if "file" in validated_data and not validated_data["file"] == instance.file:
             file = validated_data.pop("file")
             instance.file = file
@@ -33,6 +36,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
+    """Serializer for customer profiles."""
+
     user = serializers.ReadOnlyField(source="user.pk")
 
     class Meta:
@@ -49,6 +54,8 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
+    """Serializer for business profiles."""
+
     user = serializers.ReadOnlyField(source="user.pk")
 
     class Meta:

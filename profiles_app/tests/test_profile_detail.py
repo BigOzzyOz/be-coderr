@@ -9,6 +9,7 @@ from profiles_app.api.views import ProfileDetailView
 
 
 class TestProfileDetailView(APITestCase):
+    """Tests for profile detail API endpoint (retrieve, update, permissions, file upload)."""
     client_class = JSONAPIClient
 
     @classmethod
@@ -23,11 +24,13 @@ class TestProfileDetailView(APITestCase):
         self.client = self.client_class()
 
     def test_get_profile_unauthenticated(self):
+        """Test that unauthenticated users cannot retrieve a profile."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 401)
         self.assertIn("detail", response.data)
 
     def test_get_profile_not_found(self):
+        """Test that retrieving a non-existent profile returns 404."""
         self.client.force_authenticate(user=self.user)
         self.profile.delete()
         response = self.client.get(self.url)
@@ -35,6 +38,7 @@ class TestProfileDetailView(APITestCase):
         self.assertIn("detail", response.data)
 
     def test_get_profile_success(self):
+        """Test that authenticated user can retrieve their profile."""
         self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
@@ -42,6 +46,7 @@ class TestProfileDetailView(APITestCase):
         self.assertEqual(response.data["username"], self.user.username)
 
     def test_get_profile_internal_server_error(self):
+        """Test that internal server error returns 500 for profile detail."""
         self.client.force_authenticate(user=self.user)
         orig_get_object = ProfileDetailView.get_object
 
@@ -57,6 +62,7 @@ class TestProfileDetailView(APITestCase):
             ProfileDetailView.get_object = orig_get_object
 
     def test_patch_profile_success(self):
+        """Test that authenticated user can update their profile."""
         self.client.force_authenticate(user=self.user)
         data = {"first_name": "Max", "last_name": "Mustermann"}
         response = self.client.patch(self.url, data)
@@ -65,12 +71,14 @@ class TestProfileDetailView(APITestCase):
         self.assertEqual(response.data["last_name"], "Mustermann")
 
     def test_patch_profile_unauthenticated(self):
+        """Test that unauthenticated users cannot update a profile."""
         data = {"first_name": "Max"}
         response = self.client.patch(self.url, data)
         self.assertEqual(response.status_code, 401)
         self.assertIn("detail", response.data)
 
     def test_patch_profile_not_owner(self):
+        """Test that non-owners cannot update another user's profile."""
         other = User.objects.create_user(username="other", password="pw123", email="other@mail.de")
         self.client.force_authenticate(user=other)
         data = {"first_name": "Hacker"}
@@ -79,6 +87,7 @@ class TestProfileDetailView(APITestCase):
         self.assertIn("detail", response.data)
 
     def test_patch_profile_not_found(self):
+        """Test that updating a non-existent profile returns 404."""
         self.client.force_authenticate(user=self.user)
         self.profile.delete()
         data = {"first_name": "Ghost"}
@@ -87,6 +96,7 @@ class TestProfileDetailView(APITestCase):
         self.assertIn("detail", response.data)
 
     def test_patch_profile_internal_server_error(self):
+        """Test that internal server error returns 500 for profile update."""
         self.client.force_authenticate(user=self.user)
         orig_save = Profile.save
         Profile.save = lambda *a, **kw: (_ for _ in ()).throw(Exception("Test-Fehler"))
@@ -99,6 +109,7 @@ class TestProfileDetailView(APITestCase):
             Profile.save = orig_save
 
     def test_put_profile_not_allowed(self):
+        """Test that PUT is not allowed on profile detail view."""
         self.client.force_authenticate(user=self.user)
         data = {"first_name": "PUT"}
         response = self.client.put(self.url, data)
@@ -106,11 +117,13 @@ class TestProfileDetailView(APITestCase):
         self.assertIn("detail", response.data)
 
     def test_profile_str_method(self):
+        """Test the __str__ method of the Profile model."""
         self.client.force_authenticate(user=self.user)
         profile = Profile.objects.get(user=self.user)
         self.assertEqual(str(profile), f"{self.user.username}'s Profile")
 
     def test_profile_IsOwnerOrStaff_permission_staff(self):
+        """Test that staff can update any profile."""
         staff_user = User.objects.create_user(username="staffuser", password="pw123", email="")
         staff_user.is_staff = True
         staff_user.save()
@@ -121,6 +134,7 @@ class TestProfileDetailView(APITestCase):
         self.assertEqual(response.data["first_name"], "Hacker")
 
     def test_profile_IsOwnerOrStaff_permission_not_owner(self):
+        """Test that non-owners cannot update another user's profile."""
         other_user = User.objects.create_user(username="otheruser", password="pw123", email="")
         self.client.force_authenticate(user=other_user)
         data = {"first_name": "Hacker"}
@@ -129,6 +143,7 @@ class TestProfileDetailView(APITestCase):
         self.assertIn("detail", response.data)
 
     def test_patch_bad_request(self):
+        """Test that invalid patch data returns 400."""
         self.client.force_authenticate(user=self.user)
         data = {"email": "not-an-email"}
         response = self.client.patch(self.url, data)
@@ -137,6 +152,7 @@ class TestProfileDetailView(APITestCase):
         self.assertTrue(any("valid email" in str(msg).lower() for msg in response.data["email"]))
 
     def test_patch_profile_file_sets_uploaded_at(self):
+        """Test that uploading a file sets uploaded_at timestamp."""
         self.client.force_authenticate(user=self.user)
         file = SimpleUploadedFile("test.txt", b"content")
         data = {"file": file}
@@ -151,6 +167,7 @@ class TestProfileDetailView(APITestCase):
                 pass
 
     def test_patch_profile_file_upload(self):
+        """Test that file upload works and file content is correct."""
         self.client.force_authenticate(user=self.user)
         file = SimpleUploadedFile("avatar.jpg", b"dummyimagecontent", content_type="image/jpeg")
         data = {"file": file}

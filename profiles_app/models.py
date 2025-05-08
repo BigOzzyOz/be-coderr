@@ -4,6 +4,8 @@ from django.utils import timezone
 
 
 class Profile(models.Model):
+    """Model for user profile with business and customer types."""
+
     TYPE_CHOICES = [
         ("customer", "Customer"),
         ("business", "Business"),
@@ -24,4 +26,5 @@ class Profile(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
+        """String representation of Profile."""
         return f"{self.user.username}'s Profile"

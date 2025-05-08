@@ -6,6 +6,7 @@ from profiles_app.api.views import CustomerProfileListView, BusinessProfileListV
 
 
 class TestProfileListViews(APITestCase):
+    """Tests for customer and business profile list API endpoints."""
     client_class = JSONAPIClient
 
     @classmethod
@@ -25,17 +26,20 @@ class TestProfileListViews(APITestCase):
         self.client = self.client_class()
 
     def test_customer_list_unauthenticated(self):
+        """Test that unauthenticated users cannot list customer profiles."""
         response = self.client.get(self.customer_url)
         self.assertEqual(response.status_code, 401)
         self.assertIn("detail", response.data)
 
     def test_customer_list_success(self):
+        """Test that authenticated users can list customer profiles."""
         self.client.force_authenticate(user=self.user)
         response = self.client.get(self.customer_url)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(any(p["user"] == self.user.pk for p in response.data))
 
     def test_customer_list_internal_server_error(self):
+        """Test that internal server error returns 500 for customer list."""
         self.client.force_authenticate(user=self.user)
         orig_get_queryset = CustomerProfileListView.get_queryset
 
@@ -51,17 +55,20 @@ class TestProfileListViews(APITestCase):
             CustomerProfileListView.get_queryset = orig_get_queryset
 
     def test_business_list_unauthenticated(self):
+        """Test that unauthenticated users cannot list business profiles."""
         response = self.client.get(self.business_url)
         self.assertEqual(response.status_code, 401)
         self.assertIn("detail", response.data)
 
     def test_business_list_success(self):
+        """Test that authenticated users can list business profiles."""
         self.client.force_authenticate(user=self.business_user)
         response = self.client.get(self.business_url)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(any(p["user"] == self.business_user.pk for p in response.data))
 
     def test_business_list_internal_server_error(self):
+        """Test that internal server error returns 500 for business list."""
         self.client.force_authenticate(user=self.business_user)
         orig_get_queryset = BusinessProfileListView.get_queryset
 

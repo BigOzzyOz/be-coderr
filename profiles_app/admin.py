@@ -5,6 +5,8 @@ from .models import Profile
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
+    """Admin configuration for Profile model."""
+
     list_display = (
         "id",
         "username",
