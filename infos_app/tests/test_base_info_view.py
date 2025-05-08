@@ -7,9 +7,11 @@ from core.utils.test_client import JSONAPIClient
 
 
 class TestBaseInfoView(APITestCase):
+    """Tests for the BaseInfoView API endpoint."""
     client_class = JSONAPIClient
 
     def test_base_info_view_response_fields(self):
+        """Test that all expected fields are present in the response."""
         url = reverse("infos_app:base-info")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -20,6 +22,7 @@ class TestBaseInfoView(APITestCase):
         self.assertIn("offer_count", data)
 
     def test_base_info_view_counts(self):
+        """Test that the counts and averages in the response are correct."""
         business = User.objects.create(username="businessuser", email="business@mail.de")
         business.profile.type = "business"
         business.profile.save()

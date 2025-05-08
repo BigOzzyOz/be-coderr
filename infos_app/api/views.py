@@ -9,9 +9,12 @@ from offers_app.models import Offer
 
 
 class BaseInfoView(APIView):
+    """API view for base info statistics."""
+
     permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
+        """Return review, rating, business and offer statistics."""
         review_count = Review.objects.all().count()
         average_rating = round(Review.objects.aggregate(Avg("rating"))["rating__avg"] or 0, 1)
         business_profile_count = Profile.objects.filter(type="business").count()
