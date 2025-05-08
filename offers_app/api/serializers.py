@@ -118,5 +118,9 @@ class OfferSerializer(serializers.ModelSerializer):
                         setattr(old_detail, key, value)
                     old_detail.save()
                 else:
-                    raise serializers.ValidationError({"details": f"No existing detail with offer_type '{offer_type}' found. Cannot create new details on update."})
+                    raise serializers.ValidationError(
+                        {
+                            "details": f"No existing detail with offer_type '{offer_type}' found. Cannot create new details on update."
+                        }
+                    )
         return instance
