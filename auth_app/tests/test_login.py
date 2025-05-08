@@ -55,3 +55,35 @@ class TestLogin(APITestCase):
             self.assertIn("server error", response.data["detail"])
         finally:
             User.objects.get = original_get
+
+    def test_login_guest_customer(self):
+        data = {"username": "andrey", "password": "asdasd"}
+        response = self.client.post(reverse("login"), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("token", response.data)
+        self.assertEqual(response.data["username"], "andrey")
+        self.assertEqual(response.data["email"], "andrey@guest.local")
+
+        from profiles_app.models import Profile
+
+        profile = Profile.objects.get(user__username="andrey")
+        self.assertEqual(profile.type, "customer")
+
+    def test_login_guest_business(self):
+        data = {"username": "kevin", "password": "asdasd24"}
+        response = self.client.post(reverse("login"), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("token", response.data)
+        self.assertEqual(response.data["username"], "kevin")
+        self.assertEqual(response.data["email"], "kevin@guest.local")
+        from profiles_app.models import Profile
+
+        profile = Profile.objects.get(user__username="kevin")
+        self.assertEqual(profile.type, "business")
+
+    def test_login_guest_wrong_password(self):
+        data = {"username": "andrey", "password": "falsch"}
+        response = self.client.post(reverse("login"), data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("non_field_errors", response.data)
+        self.assertIn("invalid", str(response.data["non_field_errors"]).lower())

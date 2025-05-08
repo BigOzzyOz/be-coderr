@@ -129,3 +129,28 @@ class TestRegistration(APITestCase):
             self.assertIn("detail", response.data)
         finally:
             User.save = original_save
+
+    def test_guest_username_registration_blocked(self):
+        data = {
+            "username": "andrey",
+            "email": "andrey@guest.local",
+            "password": "asdasd",
+            "repeated_password": "asdasd",
+            "type": "customer",
+        }
+        response = self.client.post(reverse("register"), data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("username", response.data)
+        self.assertIn("already exists", str(response.data["username"]).lower())
+
+        data = {
+            "username": "kevin",
+            "email": "kevin@guest.local",
+            "password": "asdasd24",
+            "repeated_password": "asdasd24",
+            "type": "business",
+        }
+        response = self.client.post(reverse("register"), data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("username", response.data)
+        self.assertIn("already exists", str(response.data["username"]).lower())

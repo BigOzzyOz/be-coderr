@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework.validators import UniqueValidator
+from django.db import transaction
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -22,6 +23,10 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         attrs["username"] = attrs["username"].lower().strip()
         attrs["email"] = attrs["email"].lower().strip()
+
+        GUEST_LOGINS = ["andrey", "kevin"]
+        if attrs["username"] in GUEST_LOGINS and not User.objects.filter(username=attrs["username"]).exists():
+            raise serializers.ValidationError({"username": "Username already exists."})
 
         if attrs["password"] != attrs["repeated_password"]:
             raise serializers.ValidationError({"non_field_errors": "Passwords do not match."})
@@ -45,8 +50,32 @@ class LoginSerializer(serializers.ModelSerializer):
         fields = ("username", "password")
 
     def validate(self, attrs):
-        username = attrs.get("username").lower()
+        username = attrs.get("username").lower().strip()
         password = attrs.get("password")
+
+        GUEST_LOGINS = {
+            "andrey": ("asdasd", "customer"),
+            "kevin": ("asdasd24", "business"),
+        }
+
+        if username in GUEST_LOGINS:
+            guest_password, guest_type = GUEST_LOGINS[username]
+            if password == guest_password:
+                with transaction.atomic():
+                    user, created = User.objects.get_or_create(
+                        username=username, defaults={"email": f"{username}@guest.local"}
+                    )
+
+                    if created or not user.check_password(password):
+                        user.set_password(password)
+                        user.save()
+                        profile = user.profile
+                        profile.type = guest_type
+                        profile.save()
+                attrs["user"] = user
+                return attrs
+            else:
+                raise serializers.ValidationError({"non_field_errors": "Invalid username or password."})
 
         user = authenticate(username=username, password=password)
         if user is None:

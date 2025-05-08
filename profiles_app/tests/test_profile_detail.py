@@ -149,3 +149,23 @@ class TestProfileDetailView(APITestCase):
                 os.remove(self.profile.file.path)
             except Exception:
                 pass
+
+    def test_patch_profile_file_upload(self):
+        self.client.force_authenticate(user=self.user)
+        file = SimpleUploadedFile("avatar.jpg", b"dummyimagecontent", content_type="image/jpeg")
+        data = {"file": file}
+        response = self.client.patch(self.url, data, format="multipart")
+        self.assertEqual(response.status_code, 200)
+        self.profile.refresh_from_db()
+        self.assertTrue(self.profile.file)
+        self.assertTrue(self.profile.file.name.endswith("avatar.jpg"))
+        file_path = self.profile.file.path
+        self.assertTrue(os.path.exists(file_path))
+        with open(file_path, "rb") as f:
+            content = f.read()
+            self.assertEqual(content, b"dummyimagecontent")
+        if self.profile.file:
+            try:
+                os.remove(self.profile.file.path)
+            except Exception:
+                pass
