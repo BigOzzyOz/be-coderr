@@ -5,8 +5,6 @@ from offers_app.models import OfferDetail
 
 class OrderSerializer(serializers.ModelSerializer):
     offer_detail_id = serializers.IntegerField(write_only=True)
-    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
-    updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
 
     class Meta:
         model = Order

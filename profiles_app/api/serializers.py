@@ -5,7 +5,6 @@ from profiles_app.models import Profile
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.pk")
-    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
 
     class Meta:
         model = Profile
@@ -35,7 +34,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source="user.pk")
-    uploaded_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
 
     class Meta:
         model = Profile

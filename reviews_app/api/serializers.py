@@ -8,8 +8,6 @@ class ReviewSerializer(serializers.ModelSerializer):
     reviewer = serializers.PrimaryKeyRelatedField(read_only=True)
     business_user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     business_user_username = serializers.CharField(source="business_user.username", read_only=True)
-    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
-    updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
 
     class Meta:
         model = Review
