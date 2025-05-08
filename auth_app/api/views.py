@@ -8,10 +8,13 @@ from .serializers import RegisterSerializer, LoginSerializer
 
 
 class RegisterView(CreateAPIView):
+    """API view for user registration."""
+
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
 
     def create(self, request, *args, **kwargs):
+        """Create a new user and return token and user info."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         with transaction.atomic():
@@ -30,10 +33,13 @@ class RegisterView(CreateAPIView):
 
 
 class LoginView(CreateAPIView):
+    """API view for user login."""
+
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
 
     def create(self, request, *args, **kwargs):
+        """Authenticate user and return token and user info."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]

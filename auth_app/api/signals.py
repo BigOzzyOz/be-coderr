@@ -5,6 +5,7 @@ from profiles_app.models import Profile
 
 @receiver(post_save, sender=Profile)
 def edit_user_after_profile_update(sender, instance, **kwargs):
+    """Update user fields after profile update."""
     user = instance.user
     user.first_name = instance.first_name
     user.last_name = instance.last_name

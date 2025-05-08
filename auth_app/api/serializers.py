@@ -6,6 +6,8 @@ from django.db import transaction
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    """Serializer for user registration."""
+
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all(), message="Email already exists.")]
     )
@@ -21,6 +23,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ("username", "email", "password", "repeated_password", "type")
 
     def validate(self, attrs):
+        """Validate registration data and check for guest logins and password match."""
         attrs["username"] = attrs["username"].strip()
         attrs["email"] = attrs["email"].strip()
 
@@ -34,6 +37,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        """Create a new user from validated data."""
         validated_data.pop("repeated_password")
         validated_data.pop("type")
         validated_data["username"] = validated_data["username"]
@@ -42,6 +46,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.ModelSerializer):
+    """Serializer for user login."""
+
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
@@ -50,6 +56,7 @@ class LoginSerializer(serializers.ModelSerializer):
         fields = ("username", "password")
 
     def validate(self, attrs):
+        """Validate login credentials and handle guest logins."""
         username = attrs.get("username").strip()
         password = attrs.get("password")
 
