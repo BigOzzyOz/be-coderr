@@ -5,6 +5,8 @@ from django.db import IntegrityError
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Serializer for the Review model."""
+
     reviewer = serializers.PrimaryKeyRelatedField(read_only=True)
     business_user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     business_user_username = serializers.CharField(source="business_user.username", read_only=True)
@@ -24,6 +26,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "reviewer", "created_at", "updated_at"]
 
     def validate(self, attrs):
+        """Validate review data: no self-review, unique, rating range, etc."""
+
         request = self.context.get("request")
         user = None
         if request is None:
@@ -48,6 +52,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        """Create a new Review instance, set reviewer from request."""
+
         validated_data["reviewer"] = self.context["request"].user
         try:
             instance = Review.objects.create(**validated_data)
@@ -56,6 +62,8 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"non_field_errors": ["This review already exists."]})
 
     def update(self, instance, validated_data):
+        """Update a Review, business_user and reviewer cannot be changed."""
+
         validated_data.pop("business_user", None)
         validated_data.pop("reviewer", None)
         return super().update(instance, validated_data)

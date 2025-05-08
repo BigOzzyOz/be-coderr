@@ -8,6 +8,8 @@ from reviews_app.api.filters import ReviewFilter
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """ViewSet for listing, creating, and updating reviews."""
+
     queryset = Review.objects.all().distinct()
     serializer_class = ReviewSerializer
     filterset_class = ReviewFilter
@@ -17,10 +19,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
     ordering = ["-updated_at"]
 
     def retrieve(self, request, *args, **kwargs):
+        """Block GET on detail view (not allowed)."""
         if request.method == "GET":
             return Response({"detail": "GET is not allowed in detail View."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def update(self, request, *args, **kwargs):
+        """Block PUT, allow PATCH for updates."""
         if request.method == "PUT":
             return Response(
                 {"detail": "PUT is not allowed. Use PATCH instead."}, status=status.HTTP_405_METHOD_NOT_ALLOWED

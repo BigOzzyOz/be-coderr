@@ -6,6 +6,8 @@ from core.utils.test_client import JSONAPIClient
 
 
 class ReviewFilterTests(APITestCase):
+    """Tests for the ReviewFilter class (filtering reviews by user/business)."""
+
     client_class = JSONAPIClient
 
     @classmethod
@@ -37,6 +39,7 @@ class ReviewFilterTests(APITestCase):
                 pass
 
     def test_filter_by_business_user_id(self):
+        """Test filtering reviews by business_user_id returns correct reviews."""
         data = {"business_user_id": self.business1.id}
         qs = Review.objects.all()
         filtered_qs = ReviewFilter(data=data, queryset=qs).qs
@@ -46,6 +49,7 @@ class ReviewFilterTests(APITestCase):
         self.assertEqual(filtered_qs.count(), 2)
 
     def test_filter_by_reviewer_id(self):
+        """Test filtering reviews by reviewer_id returns correct reviews."""
         data = {"reviewer_id": self.customer1.id}
         qs = Review.objects.all()
         filtered_qs = ReviewFilter(data=data, queryset=qs).qs
@@ -55,6 +59,7 @@ class ReviewFilterTests(APITestCase):
         self.assertEqual(filtered_qs.count(), 2)
 
     def test_filter_by_business_user_id_and_reviewer_id(self):
+        """Test filtering by both business_user_id and reviewer_id returns correct review."""
         data = {"business_user_id": self.business1.id, "reviewer_id": self.customer1.id}
         qs = Review.objects.all()
         filtered_qs = ReviewFilter(data=data, queryset=qs).qs
@@ -64,6 +69,7 @@ class ReviewFilterTests(APITestCase):
         self.assertEqual(filtered_qs.count(), 1)
 
     def test_filter_no_match_business_user_id(self):
+        """Test filtering with non-existent business_user_id returns no results."""
         non_existent_id = 9999
         data = {"business_user_id": non_existent_id}
         qs = Review.objects.all()
@@ -71,6 +77,7 @@ class ReviewFilterTests(APITestCase):
         self.assertEqual(filtered_qs.count(), 0)
 
     def test_filter_no_match_reviewer_id(self):
+        """Test filtering with non-existent reviewer_id returns no results."""
         non_existent_id = 8888
         data = {"reviewer_id": non_existent_id}
         qs = Review.objects.all()
@@ -78,6 +85,7 @@ class ReviewFilterTests(APITestCase):
         self.assertEqual(filtered_qs.count(), 0)
 
     def test_filter_no_params_returns_all(self):
+        """Test filtering with no params returns all reviews."""
         data = {}
         qs = Review.objects.all()
         filtered_qs = ReviewFilter(data=data, queryset=qs).qs

@@ -10,6 +10,8 @@ from core.utils.test_client import JSONAPIClient
 
 
 class ReviewSerializerTests(APITestCase):
+    """Tests for the ReviewSerializer (validation, creation, update, edge cases)."""
+
     client_class = JSONAPIClient
 
     @classmethod
@@ -53,6 +55,7 @@ class ReviewSerializerTests(APITestCase):
         return {"request": drf_request}
 
     def test_serialize_review_instance(self):
+        """Test serializing a Review instance returns correct data."""
         context = self._get_serializer_context(self.reviewer_user)
         serializer = ReviewSerializer(instance=self.existing_review, context=context)
         data = serializer.data
@@ -64,6 +67,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertEqual(data["description"], "Good stuff")
 
     def test_create_review_valid_data(self):
+        """Test creating a review with valid data works."""
         context = self._get_serializer_context(self.reviewer_user, method="POST")
         data = {"business_user": self.other_business_user.id, "rating": 5, "description": "Excellent!"}
         serializer = ReviewSerializer(data=data, context=context)
@@ -74,6 +78,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertEqual(review.rating, 5)
 
     def test_create_review_reviewer_is_business_user_fail(self):
+        """Test that users cannot review themselves."""
         context = self._get_serializer_context(self.reviewer_user, method="POST")
         data = {"business_user": self.reviewer_user.id, "rating": 3, "description": "Self review"}
         serializer = ReviewSerializer(data=data, context=context)
@@ -82,6 +87,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertIn("Users cannot review themselves.", str(cm.exception.detail.get("non_field_errors", "")))
 
     def test_create_review_already_exists_fail(self):
+        """Test that duplicate reviews are not allowed."""
         context = self._get_serializer_context(self.reviewer_user, method="POST")
         data = {"business_user": self.business_user.id, "rating": 1, "description": "Another try"}
         serializer = ReviewSerializer(data=data, context=context)
@@ -90,6 +96,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertIn("You have already reviewed this business.", str(cm.exception.detail.get("non_field_errors", "")))
 
     def test_update_review_valid_data(self):
+        """Test updating a review with valid data works."""
         context = self._get_serializer_context(self.reviewer_user, method="PATCH")
         data = {"rating": 2, "description": "Updated description"}
         serializer = ReviewSerializer(instance=self.existing_review, data=data, partial=True, context=context)
@@ -99,6 +106,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertEqual(review.description, "Updated description")
 
     def test_update_review_try_change_business_user_ignored(self):
+        """Test that updating business_user is ignored on update."""
         context = self._get_serializer_context(self.reviewer_user, method="PATCH")
         original_business_user = self.existing_review.business_user
         data = {"business_user": self.other_business_user.id, "rating": 1}
@@ -109,6 +117,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertEqual(review.rating, 1)
 
     def test_update_review_try_change_reviewer_ignored(self):
+        """Test that updating reviewer is ignored on update."""
         context = self._get_serializer_context(self.reviewer_user, method="PATCH")
         original_reviewer = self.existing_review.reviewer
         dummy_user = User.objects.create_user(username="dummy", password="pw")
@@ -123,6 +132,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertEqual(review.rating, 1)
 
     def test_validate_missing_request_context(self):
+        """Test that missing request context raises validation error."""
         data = {"business_user": self.business_user.id, "rating": 5, "description": "desc"}
         serializer = ReviewSerializer(data=data)
         with self.assertRaises(ValidationError) as cm:
@@ -137,6 +147,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertIn("Request context is missing", error_text)
 
     def test_validate_missing_user_in_request_context(self):
+        """Test that missing user in request context raises validation error."""
         factory = APIRequestFactory()
         request_obj = factory.get("/fake-url")
         drf_request = Request(request_obj, parsers=[JSONParser()])
@@ -155,6 +166,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertIn("user is not available", error_text)
 
     def test_validate_fallback_to_request__request_user(self):
+        """Test fallback to _request.user in request context works."""
         context = self._get_serializer_context(self.reviewer_user, method="POST")
         drf_request = context["request"]
         drf_request.user = None
@@ -164,6 +176,8 @@ class ReviewSerializerTests(APITestCase):
         self.assertTrue(serializer.is_valid(raise_exception=True))
 
     def test_validate_user_not_authenticated(self):
+        """Test that unauthenticated user raises validation error."""
+
         class DummyUser:
             is_authenticated = False
 
@@ -177,6 +191,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertIn("user is not available", str(cm.exception.detail.get("non_field_errors", "")))
 
     def test_validate_users_cannot_review_themselves(self):
+        """Test that users cannot review themselves."""
         context = self._get_serializer_context(self.reviewer_user, method="POST")
         data = {"business_user": self.reviewer_user.id, "rating": 5, "description": "Self review!"}
         serializer = ReviewSerializer(data=data, context=context)
@@ -185,6 +200,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertIn("Users cannot review themselves.", str(cm.exception.detail.get("non_field_errors", "")))
 
     def test_validate_duplicate_review(self):
+        """Test that duplicate review raises validation error."""
         context = self._get_serializer_context(self.reviewer_user, method="POST")
         data = {"business_user": self.business_user.id, "rating": 5, "description": "Duplicate!"}
         serializer = ReviewSerializer(data=data, context=context)
@@ -193,6 +209,7 @@ class ReviewSerializerTests(APITestCase):
         self.assertIn("You have already reviewed this business.", str(cm.exception.detail.get("non_field_errors", "")))
 
     def test_create_integrity_error(self):
+        """Test that IntegrityError on create raises validation error."""
         context = self._get_serializer_context(self.reviewer_user, method="POST")
         data = {"business_user": self.other_business_user.id, "rating": 5, "description": "Integrity!"}
         serializer = ReviewSerializer(data=data, context=context)
@@ -213,6 +230,7 @@ class ReviewSerializerTests(APITestCase):
             Review.objects.create = orig_create
 
     def test_validate_duplicate_review_exists_query(self):
+        """Test that duplicate review is detected by exists() query."""
         context = self._get_serializer_context(self.reviewer_user, method="POST")
         data = {"business_user": self.business_user.id, "rating": 5, "description": "Duplicate!"}
         with patch("reviews_app.api.serializers.Review.objects.filter") as mock_filter:
@@ -226,6 +244,7 @@ class ReviewSerializerTests(APITestCase):
             self.assertTrue(mock_filter.return_value.exists.called)
 
     def test_validate_user_is_none(self):
+        """Test that user=None in request context raises validation error."""
         context = self._get_serializer_context(self.reviewer_user, method="POST")
         drf_request = context["request"]
         drf_request.user = None

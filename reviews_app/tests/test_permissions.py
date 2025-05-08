@@ -6,6 +6,8 @@ from core.utils.test_client import JSONAPIClient
 
 
 class TestReviewPermissions(APITestCase):
+    """Tests for IsAuthenticatedOrCustomerCreateOrOwnerUpdateDelete permission class."""
+
     client_class = JSONAPIClient
 
     @classmethod
@@ -36,6 +38,7 @@ class TestReviewPermissions(APITestCase):
         self.mock_view = type("MockView", (), {})()
 
     def test_has_permission_safe_methods_authenticated(self):
+        """Test safe methods: authenticated users have permission."""
         request = self.factory.get("/fake-url")
         request.user = self.customer_user1
         self.assertTrue(self.permission.has_permission(request, self.mock_view))
@@ -43,26 +46,31 @@ class TestReviewPermissions(APITestCase):
         self.assertTrue(self.permission.has_permission(request, self.mock_view))
 
     def test_has_permission_safe_methods_unauthenticated_false(self):
+        """Test safe methods: unauthenticated users have no permission."""
         request = self.factory.get("/fake-url")
         request.user = AnonymousUser()
         self.assertFalse(self.permission.has_permission(request, self.mock_view))
 
     def test_has_permission_post_customer_true(self):
+        """Test POST: customer user has permission."""
         request = self.factory.post("/fake-url")
         request.user = self.customer_user1
         self.assertTrue(self.permission.has_permission(request, self.mock_view))
 
     def test_has_permission_post_business_false(self):
+        """Test POST: business user has no permission."""
         request = self.factory.post("/fake-url")
         request.user = self.business_user
         self.assertFalse(self.permission.has_permission(request, self.mock_view))
 
     def test_has_permission_post_unauthenticated_false(self):
+        """Test POST: unauthenticated user has no permission."""
         request = self.factory.post("/fake-url")
         request.user = AnonymousUser()
         self.assertFalse(self.permission.has_permission(request, self.mock_view))
 
     def test_has_permission_patch_delete_put_authenticated_true(self):
+        """Test PATCH/DELETE/PUT: authenticated users have permission."""
         for method_name in ["patch", "delete", "put"]:
             request = getattr(self.factory, method_name)("/fake-url")
             request.user = self.customer_user1
@@ -76,12 +84,14 @@ class TestReviewPermissions(APITestCase):
             )
 
     def test_has_permission_patch_delete_put_unauthenticated_false(self):
+        """Test PATCH/DELETE/PUT: unauthenticated users have no permission."""
         for method_name in ["patch", "delete", "put"]:
             request = getattr(self.factory, method_name)("/fake-url")
             request.user = AnonymousUser()
             self.assertFalse(self.permission.has_permission(request, self.mock_view), f"Failed for {method_name}")
 
     def test_has_object_permission_safe_methods_authenticated_true(self):
+        """Test safe methods: authenticated users have object permission."""
         request = self.factory.get("/fake-url")
         request.user = self.customer_user1
         self.assertTrue(self.permission.has_object_permission(request, self.mock_view, self.review_by_cust1))
@@ -91,11 +101,13 @@ class TestReviewPermissions(APITestCase):
         self.assertTrue(self.permission.has_object_permission(request, self.mock_view, self.review_by_cust1))
 
     def test_has_object_permission_safe_methods_unauthenticated_false(self):
+        """Test safe methods: unauthenticated users have no object permission."""
         request = self.factory.get("/fake-url")
         request.user = AnonymousUser()
         self.assertFalse(self.permission.has_object_permission(request, self.mock_view, self.review_by_cust1))
 
     def test_has_object_permission_edit_methods_owner_true(self):
+        """Test PATCH/DELETE/PUT: owner has object permission."""
         for method_name in ["patch", "delete", "put"]:
             request = getattr(self.factory, method_name)("/fake-url")
             request.user = self.customer_user1
@@ -105,6 +117,7 @@ class TestReviewPermissions(APITestCase):
             )
 
     def test_has_object_permission_edit_methods_not_owner_false(self):
+        """Test PATCH/DELETE/PUT: non-owner has no object permission."""
         for method_name in ["patch", "delete", "put"]:
             request = getattr(self.factory, method_name)("/fake-url")
             request.user = self.customer_user2
@@ -120,6 +133,7 @@ class TestReviewPermissions(APITestCase):
             )
 
     def test_has_object_permission_edit_methods_unauthenticated_false(self):
+        """Test PATCH/DELETE/PUT: unauthenticated user has no object permission."""
         for method_name in ["patch", "delete", "put"]:
             request = getattr(self.factory, method_name)("/fake-url")
             request.user = AnonymousUser()
