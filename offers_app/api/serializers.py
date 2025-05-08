@@ -60,6 +60,17 @@ class OfferSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         request = self.context.get("request")
+        details = attrs.get("details") or self.initial_data.get("details")
+        if request and request.method == "POST":
+            if not details or len(details) != 3:
+                raise serializers.ValidationError(
+                    {"details": "Exactly 3 details (basic, standard, premium) are required."}
+                )
+            types = [d.get("offer_type") for d in details]
+            if set(types) != {"basic", "standard", "premium"}:
+                raise serializers.ValidationError(
+                    {"details": "You must provide one detail for each type: basic, standard, premium."}
+                )
         if request and request.method == "PATCH":
             raw_data = request.data
             if "details" in raw_data and isinstance(raw_data["details"], list) and not raw_data["details"]:
@@ -95,29 +106,17 @@ class OfferSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         details_data = validated_data.pop("details", None)
-
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
         if details_data is not None:
-            existing_details_mapping = {item.get("id"): item for item in details_data if item.get("id")}
-            new_details_data = [item for item in details_data if not item.get("id")]
-
-            for detail_id, data in existing_details_mapping.items():
-                try:
-                    detail_instance = OfferDetail.objects.get(id=detail_id, offer=instance)
-                    data.pop("id", None)
-                    for attr, value in data.items():
-                        setattr(detail_instance, attr, value)
-                    detail_instance.save()
-                except OfferDetail.DoesNotExist:
-                    pass
-
-            for data in new_details_data:
-                try:
-                    OfferDetail.objects.create(offer=instance, **data)
-                except Exception as e:
-                    raise serializers.ValidationError(f"Failed to create a detail: {e}")
-
+            for new_detail in details_data:
+                offer_type = new_detail.get("offer_type")
+                old_detail = instance.details.filter(offer_type=offer_type).first()
+                if old_detail:
+                    for key, value in new_detail.items():
+                        setattr(old_detail, key, value)
+                    old_detail.save()
+                else:
+                    raise serializers.ValidationError({"details": f"No existing detail with offer_type '{offer_type}' found. Cannot create new details on update."})
         return instance

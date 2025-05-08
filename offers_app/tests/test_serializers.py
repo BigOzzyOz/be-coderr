@@ -1,4 +1,3 @@
-from decimal import Decimal
 from rest_framework.test import APITestCase, APIRequestFactory
 from rest_framework.request import Request
 from rest_framework.parsers import JSONParser
@@ -93,22 +92,33 @@ class OfferSerializerTests(APITestCase):
             ]
         }
         context = self._get_serializer_context(method="PATCH", data=data)
-        initial_detail_count = self.offer_with_details.details.count()
-
         serializer = OfferSerializer(instance=self.offer_with_details, data=data, partial=True, context=context)
-        self.assertTrue(serializer.is_valid(raise_exception=True))
-        updated_offer = serializer.save()
-        self.assertEqual(updated_offer.details.count(), initial_detail_count + 1)
-        new_detail = updated_offer.details.latest("id")
-        self.assertEqual(new_detail.title, "New Detail")
-        self.assertEqual(new_detail.price, Decimal("200.00"))
-        self.assertEqual(new_detail.delivery_time_in_days, 7)
-        self.assertEqual(new_detail.revisions, 0)
-        self.assertEqual(new_detail.features, ["Feature X", "Feature Y"])
-        self.assertEqual(new_detail.offer_type, "premium")
+        serializer.is_valid(raise_exception=True)
+        with self.assertRaises(ValidationError) as cm:
+            serializer.save()
+        self.assertIn("No existing detail with offer_type", str(cm.exception))
 
-        self.detail1.refresh_from_db()
-        self.assertEqual(self.detail1.price, Decimal("110.00"))
+    @patch("offers_app.api.serializers.OfferDetail.objects.create")
+    def test_update_create_detail_fails_exception(self, mock_create):
+        mock_create.side_effect = Exception("Database connection lost")
+        data = {
+            "details": [
+                {
+                    "title": "New Detail Fail",
+                    "price": 300,
+                    "delivery_time_in_days": 10,
+                    "revisions": 1,
+                    "features": ["A"],
+                    "offer_type": "basic",
+                }
+            ]
+        }
+        context = self._get_serializer_context(method="PATCH", data=data)
+        serializer = OfferSerializer(instance=self.offer_with_details, data=data, partial=True, context=context)
+        serializer.is_valid(raise_exception=True)
+        with self.assertRaises(ValidationError) as cm:
+            serializer.save()
+        self.assertIn("No existing detail with offer_type", str(cm.exception))
 
     def test_validate_details_not_a_list_in_patch(self):
         data = {"details": {"not": "a list"}}
@@ -128,40 +138,10 @@ class OfferSerializerTests(APITestCase):
         }
         context = self._get_serializer_context(method="PATCH", data=data)
         serializer = OfferSerializer(instance=self.offer_with_details, data=data, partial=True, context=context)
-
-        self.assertTrue(serializer.is_valid(raise_exception=True))
-        updated_offer = serializer.save()
-
-        self.detail1.refresh_from_db()
-        self.assertEqual(self.detail1.price, Decimal("120.00"))
-        self.assertEqual(updated_offer.details.count(), 2)
-
-    @patch("offers_app.api.serializers.OfferDetail.objects.create")
-    def test_update_create_detail_fails_exception(self, mock_create):
-        mock_create.side_effect = Exception("Database connection lost")
-
-        data = {
-            "details": [
-                {
-                    "title": "New Detail Fail",
-                    "price": 300,
-                    "delivery_time_in_days": 10,
-                    "revisions": 1,
-                    "offer_type": "basic",
-                }
-            ]
-        }
-        context = self._get_serializer_context(method="PATCH", data=data)
-        serializer = OfferSerializer(instance=self.offer_with_details, data=data, partial=True, context=context)
-
-        self.assertTrue(serializer.is_valid(raise_exception=True))
-
+        serializer.is_valid(raise_exception=True)
         with self.assertRaises(ValidationError) as cm:
             serializer.save()
-
-        self.assertIn("Failed to create a detail: Database connection lost", str(cm.exception))
-
-        mock_create.assert_called_once()
+        self.assertIn("No existing detail with offer_type", str(cm.exception))
 
     def test_model_str_methods(self):
         self.assertEqual(str(self.offer_with_details), "Offer by testuser for Offer 1")

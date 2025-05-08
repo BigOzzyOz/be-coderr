@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from core.utils.test_client import JSONAPIClient
-from offers_app.models import Offer
+from offers_app.models import Offer, OfferDetail
 
 
 class TestOfferCreateView(APITestCase):
@@ -46,7 +46,37 @@ class TestOfferCreateView(APITestCase):
 
     def test_post_offer_success(self):
         self.client.force_authenticate(user=self.business_user)
-        response = self.client.post(self.url, self.valid_data)
+        valid_data = {
+            "title": "Neues Angebot",
+            "description": "Beschreibung",
+            "details": [
+                {
+                    "title": "Basic",
+                    "revisions": 1,
+                    "delivery_time_in_days": 5,
+                    "price": 100,
+                    "features": ["A"],
+                    "offer_type": "basic",
+                },
+                {
+                    "title": "Standard",
+                    "revisions": 2,
+                    "delivery_time_in_days": 7,
+                    "price": 200,
+                    "features": ["B"],
+                    "offer_type": "standard",
+                },
+                {
+                    "title": "Premium",
+                    "revisions": 3,
+                    "delivery_time_in_days": 10,
+                    "price": 300,
+                    "features": ["C"],
+                    "offer_type": "premium",
+                },
+            ],
+        }
+        response = self.client.post(self.url, valid_data)
         self.assertEqual(response.status_code, 201)
         self.assertIn("id", response.data)
 
@@ -58,10 +88,165 @@ class TestOfferCreateView(APITestCase):
 
     def test_post_offer_internal_server_error(self):
         self.client.force_authenticate(user=self.business_user)
+        valid_data = {
+            "title": "Neues Angebot",
+            "description": "Beschreibung",
+            "details": [
+                {
+                    "title": "Basic",
+                    "revisions": 1,
+                    "delivery_time_in_days": 5,
+                    "price": 100,
+                    "features": ["A"],
+                    "offer_type": "basic",
+                },
+                {
+                    "title": "Standard",
+                    "revisions": 2,
+                    "delivery_time_in_days": 7,
+                    "price": 200,
+                    "features": ["B"],
+                    "offer_type": "standard",
+                },
+                {
+                    "title": "Premium",
+                    "revisions": 3,
+                    "delivery_time_in_days": 10,
+                    "price": 300,
+                    "features": ["C"],
+                    "offer_type": "premium",
+                },
+            ],
+        }
         orig_create = Offer.objects.create
         Offer.objects.create = lambda *a, **kw: (_ for _ in ()).throw(Exception("Test-Fehler"))
         try:
-            response = self.client.post(self.url, self.valid_data)
+            response = self.client.post(self.url, valid_data)
             self.assertEqual(response.status_code, 500)
         finally:
             Offer.objects.create = orig_create
+
+    def test_post_offer_requires_three_types(self):
+        self.client.force_authenticate(user=self.business_user)
+        data = {
+            "title": "Test",
+            "description": "desc",
+            "details": [
+                {
+                    "title": "Basic",
+                    "revisions": 1,
+                    "delivery_time_in_days": 5,
+                    "price": 100,
+                    "features": ["A"],
+                    "offer_type": "basic",
+                },
+                {
+                    "title": "Standard",
+                    "revisions": 2,
+                    "delivery_time_in_days": 7,
+                    "price": 200,
+                    "features": ["B"],
+                    "offer_type": "standard",
+                },
+            ],
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("details", response.data)
+        # Falsche Typen
+        data["details"].append(
+            {
+                "title": "Basic2",
+                "revisions": 1,
+                "delivery_time_in_days": 5,
+                "price": 100,
+                "features": ["A"],
+                "offer_type": "basic",
+            }
+        )
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("details", response.data)
+        data["details"] = [
+            {
+                "title": "Basic",
+                "revisions": 1,
+                "delivery_time_in_days": 5,
+                "price": 100,
+                "features": ["A"],
+                "offer_type": "basic",
+            },
+            {
+                "title": "Standard",
+                "revisions": 2,
+                "delivery_time_in_days": 7,
+                "price": 200,
+                "features": ["B"],
+                "offer_type": "standard",
+            },
+            {
+                "title": "Premium",
+                "revisions": 3,
+                "delivery_time_in_days": 10,
+                "price": 300,
+                "features": ["C"],
+                "offer_type": "premium",
+            },
+        ]
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 201)
+
+    def test_patch_offer_detail_type_overwrites(self):
+        self.client.force_authenticate(user=self.business_user)
+        offer = Offer.objects.create(user=self.business_user, title="Test", description="desc")
+        OfferDetail.objects.create(
+            offer=offer,
+            title="Basic",
+            revisions=1,
+            delivery_time_in_days=5,
+            price=100,
+            features=["A"],
+            offer_type="basic",
+        )
+        OfferDetail.objects.create(
+            offer=offer,
+            title="Standard",
+            revisions=2,
+            delivery_time_in_days=7,
+            price=200,
+            features=["B"],
+            offer_type="standard",
+        )
+        OfferDetail.objects.create(
+            offer=offer,
+            title="Premium",
+            revisions=3,
+            delivery_time_in_days=10,
+            price=300,
+            features=["C"],
+            offer_type="premium",
+        )
+        url = reverse("offer-detail", kwargs={"pk": offer.id})
+        patch_data = {
+            "details": [
+                {
+                    "title": "Basic Updated",
+                    "revisions": 9,
+                    "delivery_time_in_days": 99,
+                    "price": 999,
+                    "features": ["X"],
+                    "offer_type": "basic",
+                }
+            ]
+        }
+        response = self.client.patch(url, patch_data)
+        self.assertEqual(response.status_code, 200)
+        offer.refresh_from_db()
+        basic = offer.details.get(offer_type="basic")
+        self.assertEqual(basic.title, "Basic Updated")
+        self.assertEqual(basic.revisions, 9)
+        self.assertEqual(basic.delivery_time_in_days, 99)
+        self.assertEqual(basic.price, 999)
+        self.assertEqual(basic.features, ["X"])
+        self.assertEqual(offer.details.filter(offer_type="standard").count(), 1)
+        self.assertEqual(offer.details.filter(offer_type="premium").count(), 1)
