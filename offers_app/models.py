@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 
 
 class OfferDetail(models.Model):
+    """Model for offer details (basic, standard, premium)."""
+
     OFFER_TYPE_CHOICES = [
         ("basic", "Basic"),
         ("standard", "Standard"),
@@ -19,10 +21,13 @@ class OfferDetail(models.Model):
     offer = models.ForeignKey("Offer", on_delete=models.CASCADE, related_name="details", default=None)
 
     def __str__(self):
+        """String representation of OfferDetail."""
         return self.title
 
 
 class Offer(models.Model):
+    """Model for an offer posted by a user."""
+
     id = models.AutoField(primary_key=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="offers")
     title = models.CharField(max_length=255)
@@ -32,4 +37,5 @@ class Offer(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """String representation of Offer."""
         return f"Offer by {self.user.username} for {self.title}"

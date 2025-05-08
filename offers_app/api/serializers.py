@@ -5,6 +5,8 @@ from offers_app.models import Offer, OfferDetail
 
 
 class OfferDetailSerializer(serializers.ModelSerializer):
+    """Serializer for OfferDetail model."""
+
     class Meta:
         model = OfferDetail
         fields = [
@@ -20,6 +22,8 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
 
 class OfferDetailLinkSerializer(serializers.ModelSerializer):
+    """Serializer for OfferDetail with hyperlink."""
+
     url = serializers.HyperlinkedIdentityField(view_name="offerdetails-detail", lookup_field="id", read_only=True)
 
     class Meta:
@@ -29,6 +33,8 @@ class OfferDetailLinkSerializer(serializers.ModelSerializer):
 
 
 class OfferUserDetailSerializer(serializers.ModelSerializer):
+    """Serializer for user details in Offer."""
+
     class Meta:
         model = User
         fields = ["first_name", "last_name", "username"]
@@ -36,6 +42,8 @@ class OfferUserDetailSerializer(serializers.ModelSerializer):
 
 
 class OfferSerializer(serializers.ModelSerializer):
+    """Serializer for Offer model with details and user info."""
+
     user_details = OfferUserDetailSerializer(source="user", read_only=True)
     min_price = serializers.SerializerMethodField()
     min_delivery_time = serializers.SerializerMethodField()
@@ -59,6 +67,8 @@ class OfferSerializer(serializers.ModelSerializer):
         read_only_fields = ["user", "id", "created_at", "updated_at"]
 
     def validate(self, attrs):
+        """Validate offer details for creation and update."""
+
         request = self.context.get("request")
         details = attrs.get("details") or self.initial_data.get("details")
         if request and request.method == "POST":
@@ -81,22 +91,30 @@ class OfferSerializer(serializers.ModelSerializer):
         return attrs
 
     def get_min_price(self, obj):
+        """Get minimum price from offer details."""
+
         if obj.details.exists():
             return obj.details.aggregate(models.Min("price"))["price__min"]
         return None
 
     def get_min_delivery_time(self, obj):
+        """Get minimum delivery time from offer details."""
+
         if obj.details.exists():
             return obj.details.aggregate(models.Min("delivery_time_in_days"))["delivery_time_in_days__min"]
         return None
 
     def __init__(self, *args, **kwargs):
+        """Customize fields based on request method."""
+
         super().__init__(*args, **kwargs)
         request = self.context.get("request")
         if request and request.method in ["GET"]:
             self.fields["details"] = OfferDetailLinkSerializer(many=True, read_only=True)
 
     def create(self, validated_data):
+        """Create offer with details."""
+
         validated_data["user"] = self.context["request"].user
         details_data = validated_data.pop("details", [])
         offer = Offer.objects.create(**validated_data)
@@ -105,6 +123,8 @@ class OfferSerializer(serializers.ModelSerializer):
         return offer
 
     def update(self, instance, validated_data):
+        """Update offer and its details."""
+
         details_data = validated_data.pop("details", None)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

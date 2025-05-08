@@ -7,6 +7,8 @@ from offers_app.api.views import OfferModelViewSet
 
 
 class TestOfferDetailView(APITestCase):
+    """Tests for offer detail API endpoints (OfferModelViewSet)."""
+
     client_class = JSONAPIClient
 
     @classmethod
@@ -33,22 +35,26 @@ class TestOfferDetailView(APITestCase):
         self.client = self.client_class()
 
     def test_get_offer_detail_unauthenticated(self):
+        """Test unauthenticated users cannot access offer detail."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 401)
 
     def test_get_offer_detail_authenticated(self):
+        """Test authenticated user can access own offer detail."""
         self.client.force_authenticate(user=self.business_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["id"], self.offer.pk)
 
     def test_get_offer_detail_not_found(self):
+        """Test 404 returned for non-existent offer detail."""
         self.client.force_authenticate(user=self.business_user)
         url = reverse("offer-detail", kwargs={"pk": 9999})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
     def test_get_offer_detail_internal_server_error(self):
+        """Test 500 returned for server error in get_queryset."""
         self.client.force_authenticate(user=self.business_user)
         orig_get_queryset = OfferModelViewSet.get_queryset
 
@@ -64,37 +70,44 @@ class TestOfferDetailView(APITestCase):
             OfferModelViewSet.get_queryset = orig_get_queryset
 
     def test_put_offer_not_allowed(self):
+        """Test PUT method is not allowed on offer detail."""
         self.client.force_authenticate(user=self.business_user)
         response = self.client.put(self.url, {"title": "PUT"})
         self.assertEqual(response.status_code, 405)
 
     def test_patch_offer_unauthenticated(self):
+        """Test PATCH not allowed for unauthenticated users."""
         response = self.client.patch(self.url, {"title": "Patch"})
         self.assertEqual(response.status_code, 401)
 
     def test_patch_offer_not_owner(self):
+        """Test PATCH not allowed for non-owner users."""
         self.client.force_authenticate(user=self.other_user)
         response = self.client.patch(self.url, {"title": "Patch"})
         self.assertEqual(response.status_code, 403)
 
     def test_patch_offer_not_found(self):
+        """Test PATCH returns 404 for non-existent offer."""
         self.client.force_authenticate(user=self.business_user)
         url = reverse("offer-detail", kwargs={"pk": 9999})
         response = self.client.patch(url, {"title": "Patch"})
         self.assertEqual(response.status_code, 404)
 
     def test_patch_offer_invalid_data(self):
+        """Test PATCH with invalid data returns 400."""
         self.client.force_authenticate(user=self.business_user)
         response = self.client.patch(self.url, {"details": []})
         self.assertEqual(response.status_code, 400)
 
     def test_patch_offer_success(self):
+        """Test PATCH successfully updates offer title."""
         self.client.force_authenticate(user=self.business_user)
         response = self.client.patch(self.url, {"title": "Patched"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["title"], "Patched")
 
     def test_patch_offer_internal_server_error(self):
+        """Test PATCH returns 500 on server error during save."""
         self.client.force_authenticate(user=self.business_user)
         orig_save = Offer.save
         Offer.save = lambda *a, **kw: (_ for _ in ()).throw(Exception("Test-Fehler"))
@@ -105,26 +118,31 @@ class TestOfferDetailView(APITestCase):
             Offer.save = orig_save
 
     def test_delete_offer_unauthenticated(self):
+        """Test DELETE not allowed for unauthenticated users."""
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, 401)
 
     def test_delete_offer_not_owner(self):
+        """Test DELETE not allowed for non-owner users."""
         self.client.force_authenticate(user=self.other_user)
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, 403)
 
     def test_delete_offer_not_found(self):
+        """Test DELETE returns 404 for non-existent offer."""
         self.client.force_authenticate(user=self.business_user)
         url = reverse("offer-detail", kwargs={"pk": 9999})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 404)
 
     def test_delete_offer_success(self):
+        """Test DELETE successfully removes offer."""
         self.client.force_authenticate(user=self.business_user)
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, 204)
 
     def test_delete_offer_internal_server_error(self):
+        """Test DELETE returns 500 on server error during delete."""
         self.client.force_authenticate(user=self.business_user)
         orig_delete = Offer.delete
         Offer.delete = lambda *a, **kw: (_ for _ in ()).throw(Exception("Test-Fehler"))

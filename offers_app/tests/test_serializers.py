@@ -10,6 +10,8 @@ from core.utils.test_client import JSONAPIClient
 
 
 class OfferSerializerTests(APITestCase):
+    """Tests for OfferSerializer validation and update logic."""
+
     client_class = JSONAPIClient
 
     @classmethod
@@ -45,6 +47,7 @@ class OfferSerializerTests(APITestCase):
         return {"request": drf_request}
 
     def test_validate_details_not_a_list(self):
+        """Test that details must be a list."""
         data = {"title": "Invalid Details Offer", "description": "Test", "details": {"not": "a list"}}
         context = self._get_serializer_context(method="POST", data=data)
         serializer = OfferSerializer(data=data, context=context)
@@ -53,6 +56,7 @@ class OfferSerializerTests(APITestCase):
         self.assertIn('Expected a list of items but got type "dict".', str(cm.exception.detail["details"]))
 
     def test_validate_details_missing_required_field(self):
+        """Test that missing required fields in details raise error."""
         data = {
             "title": "Missing Field Offer",
             "description": "Test",
@@ -68,16 +72,19 @@ class OfferSerializerTests(APITestCase):
         self.assertIn("This field is required.", str(cm.exception.detail["details"][1]["price"]))
 
     def test_get_min_price_no_details(self):
+        """Test min_price is None if no details exist."""
         context = self._get_serializer_context()
         serializer = OfferSerializer(instance=self.offer_no_details, context=context)
         self.assertIsNone(serializer.data["min_price"])
 
     def test_get_min_delivery_time_no_details(self):
+        """Test min_delivery_time is None if no details exist."""
         context = self._get_serializer_context()
         serializer = OfferSerializer(instance=self.offer_no_details, context=context)
         self.assertIsNone(serializer.data["min_delivery_time"])
 
     def test_update_add_new_details(self):
+        """Test that adding new details by PATCH raises error."""
         data = {
             "details": [
                 {"id": self.detail1.id, "price": 110},
@@ -100,6 +107,7 @@ class OfferSerializerTests(APITestCase):
 
     @patch("offers_app.api.serializers.OfferDetail.objects.create")
     def test_update_create_detail_fails_exception(self, mock_create):
+        """Test that creating a detail in PATCH raises error."""
         mock_create.side_effect = Exception("Database connection lost")
         data = {
             "details": [
@@ -121,6 +129,7 @@ class OfferSerializerTests(APITestCase):
         self.assertIn("No existing detail with offer_type", str(cm.exception))
 
     def test_validate_details_not_a_list_in_patch(self):
+        """Test that details must be a list in PATCH."""
         data = {"details": {"not": "a list"}}
         context = self._get_serializer_context(method="PATCH", data=data)
         serializer = OfferSerializer(instance=self.offer_with_details, data=data, partial=True, context=context)
@@ -129,6 +138,7 @@ class OfferSerializerTests(APITestCase):
         self.assertIn('Expected a list of items but got type "dict".', str(cm.exception.detail.get("details")))
 
     def test_update_nonexistent_detail_id(self):
+        """Test that updating non-existent detail raises error."""
         non_existent_id = 99999
         data = {
             "details": [
@@ -144,6 +154,7 @@ class OfferSerializerTests(APITestCase):
         self.assertIn("No existing detail with offer_type", str(cm.exception))
 
     def test_model_str_methods(self):
+        """Test string representations of Offer and OfferDetail."""
         self.assertEqual(str(self.offer_with_details), "Offer by testuser for Offer 1")
         self.assertEqual(str(self.detail1), "Detail 1.1")
         self.assertEqual(str(self.offer_no_details), "Offer by testuser for Offer 2")

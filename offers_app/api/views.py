@@ -10,6 +10,8 @@ from offers_app.api.permissions import IsAuthenticatedOrBusinessCreateOrOwnerUpd
 
 
 class OfferModelViewSet(ModelViewSet):
+    """ViewSet for listing, creating, updating, and deleting offers."""
+
     queryset = Offer.objects.all().distinct().annotate(min_price=Min("details__price"))
     serializer_class = OfferSerializer
     filterset_class = OfferFilter
@@ -19,6 +21,7 @@ class OfferModelViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrBusinessCreateOrOwnerUpdateDelete]
 
     def update(self, request, *args, **kwargs):
+        """Handle PATCH update, block PUT requests."""
         if request.method == "PUT":
             return Response(
                 {"detail": "PUT is not allowed. Use PATCH instead."}, status=status.HTTP_405_METHOD_NOT_ALLOWED
@@ -28,6 +31,8 @@ class OfferModelViewSet(ModelViewSet):
 
 
 class OfferDetailViewSet(ReadOnlyModelViewSet):
+    """Read-only ViewSet for offer details."""
+
     queryset = OfferDetail.objects.all().distinct()
     serializer_class = OfferDetailSerializer
     pagination_class = None

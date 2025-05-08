@@ -6,6 +6,8 @@ from offers_app.models import Offer, OfferDetail
 
 
 class TestOfferCreateView(APITestCase):
+    """Tests for offer creation API endpoints."""
+
     client_class = JSONAPIClient
 
     @classmethod
@@ -36,15 +38,18 @@ class TestOfferCreateView(APITestCase):
         self.client = self.client_class()
 
     def test_post_offer_unauthenticated(self):
+        """Test that unauthenticated users cannot create offers."""
         response = self.client.post(self.url, self.valid_data)
         self.assertEqual(response.status_code, 401)
 
     def test_post_offer_not_business(self):
+        """Test that only business users can create offers."""
         self.client.force_authenticate(user=self.customer_user)
         response = self.client.post(self.url, self.valid_data)
         self.assertEqual(response.status_code, 403)
 
     def test_post_offer_success(self):
+        """Test successful offer creation with valid data."""
         self.client.force_authenticate(user=self.business_user)
         valid_data = {
             "title": "Neues Angebot",
@@ -81,12 +86,14 @@ class TestOfferCreateView(APITestCase):
         self.assertIn("id", response.data)
 
     def test_post_offer_invalid_data(self):
+        """Test offer creation fails with invalid data."""
         self.client.force_authenticate(user=self.business_user)
         data = {"title": "", "details": []}
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, 400)
 
     def test_post_offer_internal_server_error(self):
+        """Test server error during offer creation returns 500."""
         self.client.force_authenticate(user=self.business_user)
         valid_data = {
             "title": "Neues Angebot",
@@ -127,6 +134,7 @@ class TestOfferCreateView(APITestCase):
             Offer.objects.create = orig_create
 
     def test_post_offer_requires_three_types(self):
+        """Test that exactly 3 offer details with unique types are required."""
         self.client.force_authenticate(user=self.business_user)
         data = {
             "title": "Test",
@@ -197,6 +205,7 @@ class TestOfferCreateView(APITestCase):
         self.assertEqual(response.status_code, 201)
 
     def test_patch_offer_detail_type_overwrites(self):
+        """Test that PATCH updates only existing offer details by type."""
         self.client.force_authenticate(user=self.business_user)
         offer = Offer.objects.create(user=self.business_user, title="Test", description="desc")
         OfferDetail.objects.create(

@@ -7,6 +7,7 @@ from offers_app.models import Offer, OfferDetail
 
 
 class TestOfferDetailDetailView(APITestCase):
+    """Tests for OfferDetailViewSet (offerdetails-detail endpoint)."""
     client_class = JSONAPIClient
 
     @classmethod
@@ -30,22 +31,26 @@ class TestOfferDetailDetailView(APITestCase):
         self.client = self.client_class()
 
     def test_get_offerdetail_unauthenticated(self):
+        """Test unauthenticated users cannot access offer detail."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 401)
 
     def test_get_offerdetail_authenticated(self):
+        """Test authenticated user can access offer detail."""
         self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["id"], self.detail.pk)
 
     def test_get_offerdetail_not_found(self):
+        """Test 404 returned for non-existent offer detail."""
         self.client.force_authenticate(user=self.user)
         url = reverse("offerdetails-detail", kwargs={"id": 9999})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
     def test_get_offerdetail_internal_server_error(self):
+        """Test 500 returned for server error in get_queryset."""
         self.client.force_authenticate(user=self.user)
         orig_get_queryset = OfferDetailViewSet.get_queryset
 

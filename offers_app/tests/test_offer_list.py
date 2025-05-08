@@ -6,6 +6,8 @@ from offers_app.models import Offer, OfferDetail
 
 
 class TestOfferListView(APITestCase):
+    """Tests for offer list API endpoints."""
+
     client_class = JSONAPIClient
 
     @classmethod
@@ -32,23 +34,27 @@ class TestOfferListView(APITestCase):
         self.client = self.client_class()
 
     def test_get_offer_list_unauthenticated(self):
+        """Test that unauthenticated users can list offers."""
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertIn("results", response.data)
 
     def test_get_offer_list_authenticated(self):
+        """Test that authenticated users can list offers."""
         self.client.force_authenticate(user=self.customer_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertIn("results", response.data)
 
     def test_get_offer_list_invalid_query(self):
+        """Test that invalid query params return 400."""
         self.client.force_authenticate(user=self.customer_user)
         response = self.client.get(self.url + "?min_price=abc")
         self.assertEqual(response.status_code, 400)
         self.assertIn("min_price", str(response.data))
 
     def test_get_offer_list_internal_server_error(self):
+        """Test that server error during list returns exception."""
         self.client.force_authenticate(user=self.customer_user)
         orig_list = self.client.get
 

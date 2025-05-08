@@ -6,6 +6,7 @@ from offers_app.api.filters import OfferFilter
 
 
 class OfferFilterTests(APITestCase):
+    """Tests for OfferFilter search functionality."""
     client_class = JSONAPIClient
 
     @classmethod
@@ -27,6 +28,7 @@ class OfferFilterTests(APITestCase):
         )
 
     def test_filter_search_single_term_title(self):
+        """Test search by single term in title."""
         data = {"search": "Web"}
         qs = Offer.objects.all()
         filtered_qs = OfferFilter(data=data, queryset=qs).qs
@@ -37,6 +39,7 @@ class OfferFilterTests(APITestCase):
         self.assertEqual(filtered_qs.count(), 2)
 
     def test_filter_search_single_term_description(self):
+        """Test search by single term in description."""
         data = {"search": "service"}
         qs = Offer.objects.all()
         filtered_qs = OfferFilter(data=data, queryset=qs).qs
@@ -47,6 +50,7 @@ class OfferFilterTests(APITestCase):
         self.assertEqual(filtered_qs.count(), 2)
 
     def test_filter_search_multiple_terms_or(self):
+        """Test search with multiple terms (OR logic)."""
         data = {"search": "Logo Python"}
         qs = Offer.objects.all()
         filtered_qs = OfferFilter(data=data, queryset=qs).qs
@@ -57,6 +61,7 @@ class OfferFilterTests(APITestCase):
         self.assertEqual(filtered_qs.count(), 2)
 
     def test_filter_search_case_insensitive(self):
+        """Test search is case-insensitive."""
         data = {"search": "amazing expert"}
         qs = Offer.objects.all()
         filtered_qs = OfferFilter(data=data, queryset=qs).qs
@@ -67,12 +72,14 @@ class OfferFilterTests(APITestCase):
         self.assertEqual(filtered_qs.count(), 2)
 
     def test_filter_search_no_match(self):
+        """Test search returns no results for non-matching term."""
         data = {"search": "nonexistentterm"}
         qs = Offer.objects.all()
         filtered_qs = OfferFilter(data=data, queryset=qs).qs
         self.assertEqual(filtered_qs.count(), 0)
 
     def test_filter_search_partial_match(self):
+        """Test search matches partial words."""
         data = {"search": "prof data"}
         qs = Offer.objects.all()
         filtered_qs = OfferFilter(data=data, queryset=qs).qs
@@ -83,12 +90,14 @@ class OfferFilterTests(APITestCase):
         self.assertEqual(filtered_qs.count(), 2)
 
     def test_filter_search_empty_string(self):
+        """Test search with empty string returns all offers."""
         data = {"search": ""}
         qs = Offer.objects.all()
         filtered_qs = OfferFilter(data=data, queryset=qs).qs
         self.assertEqual(filtered_qs.count(), 4)
 
     def test_filter_search_spaces_only(self):
+        """Test search with only spaces returns all offers."""
         data = {"search": "   "}
         qs = Offer.objects.all()
         filtered_qs = OfferFilter(data=data, queryset=qs).qs
