@@ -63,6 +63,8 @@ Coderr Backend is a modular Django REST Framework (DRF) backend for a service ma
     - `ALLOWED_HOSTS` (comma-separated list)
     - `DATABASE_URL` (full DB URL, e.g. for SQLite or Postgres)
     - `FORCE_SCRIPT_NAME` (optional, only in production, for deployments under a URL prefix)
+    - **STATIC_URL:** In Entwicklung `/static/`, in Produktion `/be-coderr/static/` (siehe .env.production)
+    - **MEDIA_URL:** In Entwicklung `/media/`, in Produktion `/be-coderr/media/`
     - (add more as needed for your project, e.g. email, storage, etc.)
   - Example `.env.development`:
     ```env
@@ -71,6 +73,7 @@ Coderr Backend is a modular Django REST Framework (DRF) backend for a service ma
     ALLOWED_HOSTS=localhost,127.0.0.1
     DATABASE_URL=sqlite:///db.sqlite3
     # FORCE_SCRIPT_NAME=/be-coderr  # Uncomment if you want to test with a URL prefix in development
+    # STATIC_URL und MEDIA_URL werden für Entwicklung nicht gesetzt (Standard: /static/ und /media/)
     ```
   - Example `.env.production`:
     ```env
@@ -79,6 +82,8 @@ Coderr Backend is a modular Django REST Framework (DRF) backend for a service ma
     ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
     DATABASE_URL=postgres://yourdbuser:yourdbpassword@yourdbhost:5432/yourdbname
     FORCE_SCRIPT_NAME=/be-coderr
+    STATIC_URL=/be-coderr/static/
+    MEDIA_URL=/be-coderr/media/
     ```
   - These files are **not** checked into version control (see `.gitignore`).
   - For production deployments, you can specify which file to load via the `DJANGO_ENV_FILE` environment variable.
