@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(DEBUG=(bool, True))
 
 # Load .env file (automatisch: .env, .env.development, .env.production, falls vorhanden)
-environ.Env.read_env(env_file=env.str("DJANGO_ENV_FILE", default=str(BASE_DIR / ".env.development")))
+environ.Env.read_env(env_file=env.str("DJANGO_ENV_FILE", default=str(BASE_DIR / ".env")))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
@@ -128,6 +128,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "mediafiles")
 
+# Script name prefix for reverse proxy deployments (e.g. /be-coderr or /be-join)
+FORCE_SCRIPT_NAME = env("FORCE_SCRIPT_NAME", default=None)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

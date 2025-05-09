@@ -53,7 +53,7 @@ Coderr Backend is a modular Django REST Framework (DRF) backend for a service ma
 - See below for a full list of main API endpoints.
 
 ## Environment & Configuration
-- **Database:** Default is SQLite for development. For production, configure your preferred database in `.env.production` and/or via environment variables.
+- **Database:** Default is SQLite for development. For production, configure your preferred database in `.env.production` using only the `DATABASE_URL` variable (recommended with django-environ).
 - **Media files:** Uploaded files are stored in the `mediafiles/` directory.
 - **Environment variables:**
   - Create a `.env.development` (for local development) and a `.env.production` (for deployment).
@@ -62,8 +62,7 @@ Coderr Backend is a modular Django REST Framework (DRF) backend for a service ma
     - `DEBUG` (True/False)
     - `ALLOWED_HOSTS` (comma-separated list)
     - `DATABASE_URL` (full DB URL, e.g. for SQLite or Postgres)
-    - `DATABASE_ENGINE` (optional, e.g. `django.db.backends.postgresql`)
-    - `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_HOST`, `DATABASE_PORT` (optional, for manual DB config)
+    - `FORCE_SCRIPT_NAME` (optional, only in production, for deployments under a URL prefix)
     - (add more as needed for your project, e.g. email, storage, etc.)
   - Example `.env.development`:
     ```env
@@ -71,13 +70,7 @@ Coderr Backend is a modular Django REST Framework (DRF) backend for a service ma
     DEBUG=True
     ALLOWED_HOSTS=localhost,127.0.0.1
     DATABASE_URL=sqlite:///db.sqlite3
-    # Optional for manual DB config:
-    # DATABASE_ENGINE=django.db.backends.sqlite3
-    # DATABASE_NAME=db.sqlite3
-    # DATABASE_USER=
-    # DATABASE_PASSWORD=
-    # DATABASE_HOST=
-    # DATABASE_PORT=
+    # FORCE_SCRIPT_NAME=/be-coderr  # Uncomment if you want to test with a URL prefix in development
     ```
   - Example `.env.production`:
     ```env
@@ -85,17 +78,11 @@ Coderr Backend is a modular Django REST Framework (DRF) backend for a service ma
     DEBUG=False
     ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
     DATABASE_URL=postgres://yourdbuser:yourdbpassword@yourdbhost:5432/yourdbname
-    # Optional for manual DB config:
-    # DATABASE_ENGINE=django.db.backends.postgresql
-    # DATABASE_NAME=yourdbname
-    # DATABASE_USER=yourdbuser
-    # DATABASE_PASSWORD=yourdbpassword
-    # DATABASE_HOST=yourdbhost
-    # DATABASE_PORT=5432
+    FORCE_SCRIPT_NAME=/be-coderr
     ```
   - These files are **not** checked into version control (see `.gitignore`).
   - For production deployments, you can specify which file to load via the `DJANGO_ENV_FILE` environment variable.
-- **Admin:** The Django admin interface is available at `/admin/`.
+- **Admin:** The Django admin interface is available at `/admin/` (or under your prefix, e.g. `/be-coderr/admin/` if `FORCE_SCRIPT_NAME` is set).
 
 ## Deployment
 
