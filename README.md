@@ -53,10 +53,95 @@ Coderr Backend is a modular Django REST Framework (DRF) backend for a service ma
 - See below for a full list of main API endpoints.
 
 ## Environment & Configuration
-- **Database:** Default is SQLite for development. For production, configure your preferred database in `core/settings.py`.
+- **Database:** Default is SQLite for development. For production, configure your preferred database in `.env.production` and/or via environment variables.
 - **Media files:** Uploaded files are stored in the `mediafiles/` directory.
-- **Environment variables:** Use environment variables or a `.env` file for secrets and environment-specific settings (not included in version control).
+- **Environment variables:**
+  - Create a `.env.development` (for local development) and a `.env.production` (for deployment).
+  - Each file should contain its own, secret `SECRET_KEY` and all required settings:
+    - `SECRET_KEY` (required, unique per environment)
+    - `DEBUG` (True/False)
+    - `ALLOWED_HOSTS` (comma-separated list)
+    - `DATABASE_URL` (full DB URL, e.g. for SQLite or Postgres)
+    - `DATABASE_ENGINE` (optional, e.g. `django.db.backends.postgresql`)
+    - `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_HOST`, `DATABASE_PORT` (optional, for manual DB config)
+    - (add more as needed for your project, e.g. email, storage, etc.)
+  - Example `.env.development`:
+    ```env
+    SECRET_KEY=dev-secret-key-please-change
+    DEBUG=True
+    ALLOWED_HOSTS=localhost,127.0.0.1
+    DATABASE_URL=sqlite:///db.sqlite3
+    # Optional for manual DB config:
+    # DATABASE_ENGINE=django.db.backends.sqlite3
+    # DATABASE_NAME=db.sqlite3
+    # DATABASE_USER=
+    # DATABASE_PASSWORD=
+    # DATABASE_HOST=
+    # DATABASE_PORT=
+    ```
+  - Example `.env.production`:
+    ```env
+    SECRET_KEY=prod-very-secret-key
+    DEBUG=False
+    ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+    DATABASE_URL=postgres://yourdbuser:yourdbpassword@yourdbhost:5432/yourdbname
+    # Optional for manual DB config:
+    # DATABASE_ENGINE=django.db.backends.postgresql
+    # DATABASE_NAME=yourdbname
+    # DATABASE_USER=yourdbuser
+    # DATABASE_PASSWORD=yourdbpassword
+    # DATABASE_HOST=yourdbhost
+    # DATABASE_PORT=5432
+    ```
+  - These files are **not** checked into version control (see `.gitignore`).
+  - For production deployments, you can specify which file to load via the `DJANGO_ENV_FILE` environment variable.
 - **Admin:** The Django admin interface is available at `/admin/`.
+
+## Deployment
+
+To deploy this Django project to production, follow these steps:
+
+1. **Prepare your environment**
+   - Use a secure server (e.g. Ubuntu, Debian, etc.)
+   - Install Python 3.10+ and pip
+   - Set up a virtual environment and activate it
+
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Configure environment variables**
+   - Create a `.env.production` file (see example above) with a unique, secret `SECRET_KEY`, `DEBUG=False`, your production `ALLOWED_HOSTS`, and your production database settings.
+   - Set the environment variable `DJANGO_ENV_FILE` to the path of your `.env.production` file, e.g.:
+     ```bash
+     export DJANGO_ENV_FILE=/path/to/your/.env.production
+     ```
+
+4. **Apply migrations and collect static files**
+   ```bash
+   python manage.py migrate
+   python manage.py collectstatic
+   ```
+
+5. **Create a superuser (if needed)**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+6. **Run the application**
+   - For production, use a WSGI server like Gunicorn:
+     ```bash
+     gunicorn core.wsgi:application --bind 0.0.0.0:8000
+     ```
+   - Use a reverse proxy (e.g. nginx) to serve static files and forward requests to Gunicorn.
+
+7. **Security notes**
+   - Never set `DEBUG=True` in production.
+   - Keep your `.env.production` file and `SECRET_KEY` secret and out of version control.
+   - Use HTTPS in production.
+
+For more details, see the [Django deployment checklist](https://docs.djangoproject.com/en/stable/howto/deployment/checklist/).
 
 ## Main API Endpoints
 
