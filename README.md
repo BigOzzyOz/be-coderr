@@ -1,6 +1,6 @@
 # Coderr Backend
 
-Coderr Backend is a modular Django REST Framework (DRF) backend for a service marketplace platform. It is designed for maintainability, scalability, and clean code, providing a robust API for user management, offers, orders, reviews, and platform statistics.
+Coderr Backend is a modular Django REST Framework (DRF) backend for a service marketplace platform. The corresponding frontend can be found at [https://github.com/BigOzzyOz/coderr](https://github.com/BigOzzyOz/coderr). It is designed for maintainability, scalability, and clean code, providing a robust API for user management, offers, orders, reviews, and platform statistics.
 
 ## Features
 - **Modular project structure:** Each domain (auth, profiles, offers, orders, reviews, infos) is implemented as a separate Django app for clear separation of concerns.
@@ -46,6 +46,9 @@ Coderr Backend is a modular Django REST Framework (DRF) backend for a service ma
    ```bash
    python manage.py runserver
    ```
+
+## Frontend
+The frontend for this backend project is available at [https://github.com/BigOzzyOz/coderr](https://github.com/BigOzzyOz/coderr).
 
 ## API Overview
 - All endpoints are prefixed with `/api/`
